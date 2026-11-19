@@ -487,6 +487,56 @@
         transform: scale(0.97);
       }
     }
+
+
+    .copy-route-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  border: 1px solid #2477B5;
+  border-radius: 8px;
+  background: #EAF3FA;
+  color: #123A55;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.copy-route-button:hover {
+  background: #D8EBF8;
+}
+
+    
+.route-select-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.copy-route-button {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid #2477B5;
+  border-radius: 8px;
+  background: #EAF3FA;
+  color: #123A55;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.copy-route-button:hover {
+  background: #D8EBF8;
+}
+
   </style>
 </head>
 
@@ -1551,87 +1601,122 @@
 
     // LISTA DE ROTAS
 
-    function renderizarListaRotas() {
-      routesList.replaceChildren();
+function renderizarListaRotas() {
+  routesList.replaceChildren();
 
-      routesCount.textContent =
-        rotasEncontradas.length +
-        (rotasEncontradas.length === 1
-          ? " rota"
-          : " rotas");
+  routesCount.textContent =
+    rotasEncontradas.length +
+    (rotasEncontradas.length === 1 ? " rota" : " rotas");
 
-      rotasEncontradas.forEach((rota, indice) => {
-        const selecionada =
-          indice === rotaSelecionada;
+  rotasEncontradas.forEach((rota, indice) => {
+    const selecionada = indice === rotaSelecionada;
 
-        const item = document.createElement("button");
+    // Contêiner da rota
+    const item = document.createElement("div");
 
-        item.type = "button";
-        item.className =
-          "route-item" +
-          (selecionada ? " active" : "");
+    item.className =
+      "route-item" + (selecionada ? " active" : "");
 
-        item.setAttribute(
-          "aria-pressed",
-          String(selecionada)
-        );
+    // Botão responsável por selecionar a rota
+    const botaoSelecionar = document.createElement("button");
 
-        const titulo = document.createElement("strong");
+    botaoSelecionar.type = "button";
+    botaoSelecionar.className = "route-select-button";
+    botaoSelecionar.setAttribute(
+      "aria-pressed",
+      String(selecionada)
+    );
 
-        const bolinha = document.createElement("span");
+    const titulo = document.createElement("strong");
 
-        bolinha.className = "route-color";
-        bolinha.style.background =
-          selecionada
-            ? "#168A67"
-            : CORES_ROTAS[
-                indice % CORES_ROTAS.length
-              ];
+    const bolinha = document.createElement("span");
+    bolinha.className = "route-color";
 
-        titulo.appendChild(bolinha);
+    bolinha.style.background = selecionada
+      ? "#168A67"
+      : CORES_ROTAS[indice % CORES_ROTAS.length];
 
-        titulo.appendChild(
-          document.createTextNode(
-            indice === 0
-              ? "Rota principal"
-              : "Rota alternativa " + indice
-          )
-        );
+    titulo.appendChild(bolinha);
 
-        const detalhes =
-          document.createElement("div");
+    titulo.appendChild(
+      document.createTextNode(
+        indice === 0
+          ? "Rota principal"
+          : "Rota alternativa " + indice
+      )
+    );
 
-        detalhes.className = "route-details";
+    const detalhes = document.createElement("div");
+    detalhes.className = "route-details";
 
-        const distancia = document.createElement("span");
-        distancia.textContent =
-          "📏 " + formatarDistancia(rota.distance);
+    const distancia = document.createElement("span");
+    distancia.textContent =
+      "📏 " + formatarDistancia(rota.distance);
 
-        const tempo = document.createElement("span");
-        tempo.textContent =
-          "⏱️ " + formatarTempo(rota.duration);
+    const tempo = document.createElement("span");
+    tempo.textContent =
+      "⏱️ " + formatarTempo(rota.duration);
 
-        detalhes.appendChild(distancia);
-        detalhes.appendChild(tempo);
+    detalhes.appendChild(distancia);
+    detalhes.appendChild(tempo);
 
-        const instrucao =
-          document.createElement("small");
+    const instrucao = document.createElement("small");
 
-        instrucao.textContent = selecionada
-          ? "Rota selecionada"
-          : "Toque para visualizar esta rota";
+    instrucao.textContent = selecionada
+      ? "Rota selecionada"
+      : "Toque para visualizar esta rota";
 
-        item.appendChild(titulo);
-        item.appendChild(detalhes);
-        item.appendChild(instrucao);
+    botaoSelecionar.appendChild(titulo);
+    botaoSelecionar.appendChild(detalhes);
+    botaoSelecionar.appendChild(instrucao);
 
-        item.addEventListener("click", () => {
-          selecionarRota(indice);
-        });
+    botaoSelecionar.addEventListener("click", () => {
+      selecionarRota(indice);
+    });
 
-        routesList.appendChild(item);
+    // Botão de compartilhamento
+    const botaoCopiar = document.createElement("button");
+
+    botaoCopiar.type = "button";
+    botaoCopiar.className = "copy-route-button";
+    botaoCopiar.textContent = "🔗 Copiar link";
+
+    botaoCopiar.addEventListener("click", async () => {
+      if (!pontos.origem || !pontos.destino) {
+        mostrarStatus("Origem ou destino indisponível.");
+        return;
+      }
+
+      const parametros = new URLSearchParams({
+        origem: pontos.origem.coordenadas.join(","),
+        destino: pontos.destino.coordenadas.join(","),
+        rota: String(indice)
       });
-    }
+
+      const link = new URL(window.location.href);
+      link.search = parametros.toString();
+
+      try {
+        await navigator.clipboard.writeText(link.toString());
+
+        botaoCopiar.textContent = "✓ Link copiado!";
+
+        mostrarStatus("Link copiado para a área de transferência.");
+
+      } catch (erro) {
+        mostrarStatus("Não foi possível copiar o link.");
+        console.error(erro);
+      }
+    });
+
+    item.appendChild(botaoSelecionar);
+    item.appendChild(botaoCopiar);
+
+    routesList.appendChild(item);
+  });
+}
+
+ 
 
     function selecionarRota(indice) {
       if (!rotasEncontradas[indice]) {
