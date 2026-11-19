@@ -931,25 +931,129 @@
 
     // CONSULTAR ENDEREÇOS NA API MAPBOX
 
-    async function pesquisarEnderecos(
-      tipo,
-      texto,
-      sequencia
-    ) {
-      const caixa = sugestoes[tipo];
+   
+async function pesquisarEnderecos(tipo, texto, sequencia) {
+  const caixa = sugestoes[tipo];
 
-      const controlador = new AbortController();
-      controladoresBusca[tipo] = controlador;
+  const controlador = new AbortController();
+  controladoresBusca[tipo] = controlador;
 
-      const parametros = new URLSearchParams({
-        q: texto,
-        access_token: mapboxgl.accessToken,
-        country: "br",
-        language: "pt",
-        autocomplete: "true",
-        limit: "5",
-        proximity: "-41.05,-21.78"
+  const parametros = new URLSearchParams({
+    q: texto,
+    access_token: mapboxgl.accessToken,
+    country: "br",
+    language: "pt",
+    autocomplete: "true",
+    limit: "5"
+  });
+
+  const url =
+    "https://api.mapbox.com/search/geocode/v6/forward?" +
+    parametros.toString();
+
+  try {
+    const resposta = await fetch(url, {
+      signal: controlador.signal
+    });
+
+    if (!resposta.ok) {
+      let detalhes = "";
+
+      try {
+        detalhes = await resposta.text();
+      } catch (e) {
+        detalhes = "";
+      }
+
+      console.error(
+        "Mapbox Geocoding:",
+        resposta.status,
+        detalhes
+      );
+
+      throw new Error("HTTP " + resposta.status);
+    }
+
+    const dados = await resposta.json();
+
+    if (sequencia !== sequenciasBusca[tipo]) {
+      return;
+    }
+
+    caixa.replaceChildren();
+
+    const resultados = dados.features || [];
+
+    if (resultados.length === 0) {
+      const aviso = document.createElement("div");
+      aviso.className = "suggestion-item";
+      aviso.textContent = "Nenhum endereço encontrado.";
+      caixa.appendChild(aviso);
+      caixa.hidden = false;
+      return;
+    }
+
+    resultados.forEach(function(feature) {
+      const propriedades = feature.properties || {};
+
+      const botao = document.createElement("button");
+      botao.type = "button";
+      botao.className = "suggestion-item";
+
+      const titulo = document.createElement("strong");
+      titulo.textContent =
+        propriedades.name_preferred ||
+        propriedades.name ||
+        "Local encontrado";
+
+      const descricao = document.createElement("small");
+      descricao.textContent =
+        propriedades.place_formatted || "";
+
+      botao.appendChild(titulo);
+      botao.appendChild(descricao);
+
+      botao.addEventListener("click", function() {
+        selecionarPonto(tipo, feature);
       });
+
+      caixa.appendChild(botao);
+    });
+
+    caixa.hidden = false;
+
+  } catch (erro) {
+    if (erro.name === "AbortError") {
+      return;
+    }
+
+    if (sequencia !== sequenciasBusca[tipo]) {
+      return;
+    }
+
+    limparSugestoes(tipo);
+
+    const codigo = erro.message.match(/HTTP (\d+)/);
+    const status = codigo ? codigo[1] : "";
+
+    if (status === "401" || status === "403") {
+      informarStatus(
+        "A pesquisa foi recusada pelo Mapbox (" +
+        status + "). Verifique o token e as permissões."
+      );
+    } else if (status === "429") {
+      informarStatus(
+        "O limite de consultas do Mapbox foi atingido."
+      );
+    } else {
+      informarStatus(
+        "Falha na pesquisa: " + erro.message
+      );
+    }
+
+    console.error("Erro na pesquisa:", erro);
+  }
+}
 
       const url =
         "https://api.mapbox.com/search/geocode/v6/forward?" +
