@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,14 +7,12 @@
   <meta name="theme-color" content="#123A55">
 
   <title>AçuWay | Plataforma Inteligente de Rotas</title>
-
-  <!-- MAPBOX -->
   <link
-    href="https://api.mapbox.com/mapbox-gl-js/v3.17.0/mapbox-gl.css"
-    rel="stylesheet"
-  >
+  href="https://api.mapbox.com/mapbox-gl-js/v3.17.0/mapbox-gl.css"
+  rel="stylesheet"
+>
 
-  <script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0/mapbox-gl.js"></script>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.17.0/mapbox-gl.js"></script>
 
   <style>
     :root {
@@ -65,6 +62,7 @@
       margin: 0 auto;
       background: var(--background);
       position: relative;
+      overflow: hidden;
       box-shadow: 0 0 28px rgba(0,0,0,0.10);
     }
 
@@ -152,13 +150,11 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      position: relative;
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 0 12px;
       margin-bottom: 10px;
       min-height: 49px;
-      background: var(--white);
     }
 
     .field-icon {
@@ -223,67 +219,6 @@
       margin-top: 4px;
     }
 
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.65;
-    }
-
-    /* SUGESTÕES DE ENDEREÇOS */
-
-    .suggestions {
-      position: absolute;
-      top: calc(100% + 3px);
-      left: 0;
-      right: 0;
-      z-index: 50;
-      background: #FFFFFF;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      max-height: 230px;
-      overflow-y: auto;
-    }
-
-    .suggestions[hidden] {
-      display: none;
-    }
-
-    .suggestion-item {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      margin: 0;
-      text-align: left;
-      border: none;
-      border-bottom: 1px solid #EDF0F3;
-      background: #FFFFFF;
-      color: var(--text);
-      font-size: 13px;
-    }
-
-    .suggestion-item:hover,
-    .suggestion-item:focus-visible {
-      background: #EAF3FA;
-    }
-
-    .suggestion-item small {
-      display: block;
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 11px;
-    }
-
-    .search-status {
-      margin: 10px 0 0;
-      color: #647785;
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .search-status:empty {
-      display: none;
-    }
-
     /* ROTAS DISPONÍVEIS */
 
     .routes-header {
@@ -326,6 +261,11 @@
       margin-bottom: 8px;
     }
 
+    .route-item strong {
+      color: var(--primary);
+      font-size: 13px;
+    }
+
     /* MAPA */
 
     .map-card {
@@ -347,6 +287,34 @@
       border: 1px solid var(--border);
       overflow: hidden;
       position: relative;
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+    }
+
+    .map-placeholder .map-icon {
+      font-size: 45px;
+      margin-bottom: 12px;
+    }
+
+    .map-placeholder strong {
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .map-placeholder p {
+      font-size: 12px;
+      line-height: 1.6;
+      max-width: 240px;
     }
 
     /* ASSISTENTE IA */
@@ -422,6 +390,8 @@
       background: var(--background);
     }
 
+    /* RODAPÉ */
+
     footer {
       padding: 15px 15px 28px;
       text-align: center;
@@ -444,6 +414,68 @@
         transform: scale(0.97);
       }
     }
+
+/* AUTOCOMPLETE DE ENDEREÇOS */
+
+.field {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #FFFFFF;
+  border: 1px solid #DCE4EA;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  max-height: 230px;
+  overflow-y: auto;
+}
+
+.suggestions[hidden] {
+  display: none;
+}
+
+.suggestion-item {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin: 0;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid #EDF0F3;
+  background: #FFFFFF;
+  color: #243746;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover,
+.suggestion-item:focus-visible {
+  background: #EAF3FA;
+}
+
+.suggestion-item small {
+  display: block;
+  margin-top: 4px;
+  color: #70808D;
+  font-size: 11px;
+}
+
+.search-status {
+  margin: 8px 0 0;
+  color: #647785;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.search-status:empty {
+  display: none;
+}
+    
   </style>
 </head>
 
@@ -457,6 +489,7 @@
     </header>
 
     <nav class="toolbar" aria-label="Menu principal">
+
       <button
         class="icon-button"
         id="openMenu"
@@ -473,18 +506,19 @@
       </span>
 
       <span aria-hidden="true">📍</span>
+
     </nav>
 
     <main>
 
       <section class="card">
+
         <h2 class="section-title">
           Encontre seu caminho
         </h2>
 
         <div class="route-fields">
 
-          <!-- ORIGEM -->
           <div class="field">
             <span class="field-icon" aria-hidden="true">
               🟢
@@ -495,19 +529,10 @@
               id="origem"
               placeholder="Ponto de partida"
               aria-label="Origem"
-              aria-controls="sugestoesOrigem"
-              aria-autocomplete="list"
               autocomplete="off"
             >
-
-            <div
-              class="suggestions"
-              id="sugestoesOrigem"
-              hidden
-            ></div>
           </div>
 
-          <!-- DESTINO -->
           <div class="field">
             <span class="field-icon" aria-hidden="true">
               📍
@@ -518,16 +543,15 @@
               id="destino"
               placeholder="Para onde deseja ir?"
               aria-label="Destino"
-              aria-controls="sugestoesDestino"
-              aria-autocomplete="list"
               autocomplete="off"
             >
 
             <div
-              class="suggestions"
-              id="sugestoesDestino"
-              hidden
+            class="suggestions"
+            id="sugestoesDestino"
+            hidden
             ></div>
+            
           </div>
 
           <button
@@ -547,7 +571,7 @@
           id="locationButton"
           type="button"
           disabled
-          title="Disponível em uma próxima etapa"
+          title="Disponível após integrar a geolocalização"
         >
           📍 Usar minha localização atual
         </button>
@@ -557,30 +581,28 @@
           id="searchButton"
           type="button"
           disabled
-          title="O cálculo de rotas será implementado na próxima etapa"
+          title="Disponível após integrar o Mapbox"
         >
           Buscar rotas
         </button>
 
-        <p
-          id="searchStatus"
-          class="search-status"
-          role="status"
-          aria-live="polite"
-        ></p>
       </section>
 
-      <!-- ROTAS DISPONÍVEIS -->
-
       <section class="card">
+
         <div class="routes-header">
+
           <h2 class="section-title">
             Rotas disponíveis
           </h2>
 
-          <span class="routes-count" id="routesCount">
+          <span
+            class="routes-count"
+            id="routesCount"
+          >
             0 rotas
           </span>
+
         </div>
 
         <div
@@ -593,17 +615,20 @@
             consultar os caminhos disponíveis.
           </div>
         </div>
+
       </section>
 
-      <!-- MAPA -->
-
       <section class="card map-card">
+
         <h2 class="map-title">
           Mapa geral
         </h2>
 
-    <div id="mapa"></div>
-    </section>
+        <<div id="mapa"></div>
+
+        </div>
+
+      </section>
 
     </main>
 
@@ -627,7 +652,9 @@
     aria-label="Rotas cadastradas"
     hidden
   >
+
     <div class="sidebar-header">
+
       <h2>Rotas cadastradas</h2>
 
       <button
@@ -638,9 +665,11 @@
       >
         ×
       </button>
+
     </div>
 
     <div class="sidebar-empty">
+
       <p>
         Aqui serão exibidas as rotas
         previamente cadastradas e
@@ -650,7 +679,9 @@
       <p>
         Nenhuma rota cadastrada no momento.
       </p>
+
     </div>
+
   </aside>
 
   <!-- ASSISTENTE DE IA -->
@@ -666,29 +697,29 @@
   </button>
 
   <script>
-    // CONFIGURAÇÃO DO MAPBOX
-    // Insira somente um token público iniciado por pk.
+    const openMenu =
+      document.getElementById("openMenu");
 
-    mapboxgl.accessToken = "pk.eyJ1IjoibWFyaWFwcGF6ZXZlZG8wNiIsImEiOiJjbXdua3NneWkwMG1sMnlxNmRybzQ1NTVoIn0.dFWQrpG3w6Y1NnIJRGo9uQ";
+    const closeMenu =
+      document.getElementById("closeMenu");
 
-    // ELEMENTOS DA INTERFACE
+    const sidebar =
+      document.getElementById("sidebar");
 
-    const openMenu = document.getElementById("openMenu");
-    const closeMenu = document.getElementById("closeMenu");
-    const sidebar = document.getElementById("sidebar");
-    const menuOverlay = document.getElementById("menuOverlay");
-    const origem = document.getElementById("origem");
-    const destino = document.getElementById("destino");
-    const swapButton = document.getElementById("swapButton");
-    const aiButton = document.getElementById("aiButton");
-    const searchStatus = document.getElementById("searchStatus");
+    const menuOverlay =
+      document.getElementById("menuOverlay");
 
-    const sugestoes = {
-      origem: document.getElementById("sugestoesOrigem"),
-      destino: document.getElementById("sugestoesDestino")
-    };
+    const origem =
+      document.getElementById("origem");
 
-    // MENU LATERAL
+    const destino =
+      document.getElementById("destino");
+
+    const swapButton =
+      document.getElementById("swapButton");
+
+    const aiButton =
+      document.getElementById("aiButton");
 
     let previousFocus = null;
 
@@ -698,7 +729,11 @@
       sidebar.hidden = false;
       menuOverlay.hidden = false;
 
-      openMenu.setAttribute("aria-expanded", "true");
+      openMenu.setAttribute(
+        "aria-expanded",
+        "true"
+      );
+
       document.body.style.overflow = "hidden";
 
       closeMenu.focus();
@@ -708,7 +743,11 @@
       sidebar.hidden = true;
       menuOverlay.hidden = true;
 
-      openMenu.setAttribute("aria-expanded", "false");
+      openMenu.setAttribute(
+        "aria-expanded",
+        "false"
+      );
+
       document.body.style.overflow = "";
 
       if (previousFocus) {
@@ -716,524 +755,76 @@
       }
     }
 
-    openMenu.addEventListener("click", abrirMenu);
-    closeMenu.addEventListener("click", fecharMenu);
-    menuOverlay.addEventListener("click", fecharMenu);
-
-    document.addEventListener("keydown", function(event) {
-      if (event.key === "Escape" && !sidebar.hidden) {
-        fecharMenu();
-      }
-    });
-
-    // ASSISTENTE DE IA
-
-    aiButton.addEventListener("click", function() {
-      alert(
-        "O assistente inteligente do AçuWay " +
-        "será disponibilizado em uma etapa futura."
-      );
-    });
-
-    // MAPA INTERATIVO
-
-    const mapaAcuWay = new mapboxgl.Map({
-      container: "mapa",
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [-41.05, -21.78],
-      zoom: 10,
-      attributionControl: true
-    });
-
-    mapaAcuWay.addControl(
-      new mapboxgl.NavigationControl(),
-      "top-right"
+    openMenu.addEventListener(
+      "click",
+      abrirMenu
     );
 
-    mapaAcuWay.on("load", function() {
-      mapaAcuWay.resize();
-    });
+    closeMenu.addEventListener(
+      "click",
+      fecharMenu
+    );
 
-    // DADOS DOS PONTOS SELECIONADOS
+    menuOverlay.addEventListener(
+      "click",
+      fecharMenu
+    );
 
-    const pontosAcuWay = {
-      origem: null,
-      destino: null
-    };
-
-    const marcadoresAcuWay = {
-      origem: null,
-      destino: null
-    };
-
-    const controladoresBusca = {
-      origem: null,
-      destino: null
-    };
-
-    const sequenciasBusca = {
-      origem: 0,
-      destino: 0
-    };
-
-    const temporizadoresBusca = {
-      origem: null,
-      destino: null
-    };
-
-    function informarStatus(mensagem) {
-      searchStatus.textContent = mensagem;
-    }
-
-    function limparSugestoes(tipo) {
-      const caixa = sugestoes[tipo];
-
-      caixa.replaceChildren();
-      caixa.hidden = true;
-    }
-
-    function cancelarBusca(tipo) {
-      clearTimeout(temporizadoresBusca[tipo]);
-
-      sequenciasBusca[tipo]++;
-
-      if (controladoresBusca[tipo]) {
-        controladoresBusca[tipo].abort();
-        controladoresBusca[tipo] = null;
-      }
-    }
-
-    function removerMarcador(tipo) {
-      if (marcadoresAcuWay[tipo]) {
-        marcadoresAcuWay[tipo].remove();
-        marcadoresAcuWay[tipo] = null;
-      }
-    }
-
-    // AJUSTAR VISUALIZAÇÃO DO MAPA
-
-    function atualizarMapaPontos() {
-      const pontos = [
-        pontosAcuWay.origem,
-        pontosAcuWay.destino
-      ].filter(Boolean);
-
-      if (pontos.length === 2) {
-        const limites = new mapboxgl.LngLatBounds();
-
-        pontos.forEach(function(ponto) {
-          limites.extend(ponto.coordenadas);
-        });
-
-        mapaAcuWay.fitBounds(limites, {
-          padding: 55,
-          maxZoom: 14,
-          duration: 800
-        });
-
-      } else if (pontos.length === 1) {
-        mapaAcuWay.flyTo({
-          center: pontos[0].coordenadas,
-          zoom: 13,
-          essential: true
-        });
-      }
-    }
-
-    // DESENHAR MARCADORES
-
-    function desenharMarcadores() {
-      ["origem", "destino"].forEach(function(tipo) {
-        removerMarcador(tipo);
-
-        const ponto = pontosAcuWay[tipo];
-
-        if (!ponto) {
-          return;
+    document.addEventListener(
+      "keydown",
+      function(event) {
+        if (
+          event.key === "Escape" &&
+          !sidebar.hidden
+        ) {
+          fecharMenu();
         }
-
-        const cor = tipo === "origem"
-          ? "#168A67"
-          : "#2477B5";
-
-        marcadoresAcuWay[tipo] = new mapboxgl.Marker({
-          color: cor
-        })
-          .setLngLat(ponto.coordenadas)
-          .setPopup(
-            new mapboxgl.Popup({
-              offset: 20
-            }).setText(ponto.nome)
-          )
-          .addTo(mapaAcuWay);
-      });
-
-      atualizarMapaPontos();
-    }
-
-    // SELECIONAR UM ENDEREÇO
-
-    function selecionarPonto(tipo, feature) {
-      const coordenadas = feature.geometry?.coordinates;
-
-      if (
-        !Array.isArray(coordenadas) ||
-        coordenadas.length < 2
-      ) {
-        informarStatus(
-          "Não foi possível identificar as coordenadas."
-        );
-        return;
       }
+    );
 
-      const propriedades = feature.properties || {};
+    swapButton.addEventListener(
+      "click",
+      function() {
+        const valorOrigem = origem.value;
 
-      const nome =
-        propriedades.full_address ||
-        propriedades.name_preferred ||
-        propriedades.name ||
-        feature.place_name ||
-        "Local selecionado";
+        origem.value = destino.value;
+        destino.value = valorOrigem;
+      }
+    );
 
-      pontosAcuWay[tipo] = {
-        nome: nome,
-        coordenadas: [
-          coordenadas[0],
-          coordenadas[1]
-        ]
-      };
-
-      const campo = tipo === "origem"
-        ? origem
-        : destino;
-
-      campo.value = nome;
-
-      cancelarBusca(tipo);
-      limparSugestoes(tipo);
-      desenharMarcadores();
-
-      if (
-        pontosAcuWay.origem &&
-        pontosAcuWay.destino
-      ) {
-        informarStatus(
-          "Origem e destino selecionados. " +
-          "O cálculo das rotas será implementado " +
-          "na próxima etapa."
-        );
-      } else {
-        informarStatus(
-          "Local selecionado. Informe o outro ponto."
+    aiButton.addEventListener(
+      "click",
+      function() {
+        alert(
+          "O assistente inteligente do AçuWay " +
+          "será disponibilizado em uma etapa futura."
         );
       }
-    }
+    );
+  </script>
+<script>
+  // Token público do Mapbox
+  mapboxgl.accessToken = "pk.eyJ1IjoibWFyaWFwcGF6ZXZlZG8wNiIsImEiOiJjbXdua3NneWkwMG1sMnlxNmRybzQ1NTVoIn0.dFWQrpG3w6Y1NnIJRGo9uQ";
 
-    // CONSULTAR ENDEREÇOS NA API MAPBOX
-
-   
-async function pesquisarEnderecos(tipo, texto, sequencia) {
-  const caixa = sugestoes[tipo];
-
-  const controlador = new AbortController();
-  controladoresBusca[tipo] = controlador;
-
-  const parametros = new URLSearchParams({
-    q: texto,
-    access_token: mapboxgl.accessToken,
-    country: "br",
-    language: "pt",
-    autocomplete: "true",
-    limit: "5"
+  // Inicialização do mapa
+  const mapaAcuWay = new mapboxgl.Map({
+    container: "mapa",
+    style: "mapbox://styles/mapbox/streets-v12",
+    center: [-41.05, -21.78],
+    zoom: 10,
+    attributionControl: true
   });
 
-  const url =
-    "https://api.mapbox.com/search/geocode/v6/forward?" +
-    parametros.toString();
-
-  try {
-    const resposta = await fetch(url, {
-      signal: controlador.signal
-    });
-
-    if (!resposta.ok) {
-      let detalhes = "";
-
-      try {
-        detalhes = await resposta.text();
-      } catch (e) {
-        detalhes = "";
-      }
-
-      console.error(
-        "Mapbox Geocoding:",
-        resposta.status,
-        detalhes
-      );
-
-      throw new Error("HTTP " + resposta.status);
-    }
-
-    const dados = await resposta.json();
-
-    if (sequencia !== sequenciasBusca[tipo]) {
-      return;
-    }
-
-    caixa.replaceChildren();
-
-    const resultados = dados.features || [];
-
-    if (resultados.length === 0) {
-      const aviso = document.createElement("div");
-      aviso.className = "suggestion-item";
-      aviso.textContent = "Nenhum endereço encontrado.";
-      caixa.appendChild(aviso);
-      caixa.hidden = false;
-      return;
-    }
-
-    resultados.forEach(function(feature) {
-      const propriedades = feature.properties || {};
-
-      const botao = document.createElement("button");
-      botao.type = "button";
-      botao.className = "suggestion-item";
-
-      const titulo = document.createElement("strong");
-      titulo.textContent =
-        propriedades.name_preferred ||
-        propriedades.name ||
-        "Local encontrado";
-
-      const descricao = document.createElement("small");
-      descricao.textContent =
-        propriedades.place_formatted || "";
-
-      botao.appendChild(titulo);
-      botao.appendChild(descricao);
-
-      botao.addEventListener("click", function() {
-        selecionarPonto(tipo, feature);
-      });
-
-      caixa.appendChild(botao);
-    });
-
-    caixa.hidden = false;
-
-  } catch (erro) {
-    if (erro.name === "AbortError") {
-      return;
-    }
-
-    if (sequencia !== sequenciasBusca[tipo]) {
-      return;
-    }
-
-    limparSugestoes(tipo);
-
-    const codigo = erro.message.match(/HTTP (\d+)/);
-    const status = codigo ? codigo[1] : "";
-
-    if (status === "401" || status === "403") {
-      informarStatus(
-        "A pesquisa foi recusada pelo Mapbox (" +
-        status + "). Verifique o token e as permissões."
-      );
-    } else if (status === "429") {
-      informarStatus(
-        "O limite de consultas do Mapbox foi atingido."
-      );
-    } else {
-      informarStatus(
-        "Falha na pesquisa: " + erro.message
-      );
-    }
-
-    console.error("Erro na pesquisa:", erro);
-  }
-}
-
-      const url =
-        "https://api.mapbox.com/search/geocode/v6/forward?" +
-        parametros.toString();
-
-      try {
-        const resposta = await fetch(url, {
-          signal: controlador.signal
-        });
-
-        if (!resposta.ok) {
-          throw new Error(
-            "Erro na pesquisa: " + resposta.status
-          );
-        }
-
-        const dados = await resposta.json();
-
-        if (sequencia !== sequenciasBusca[tipo]) {
-          return;
-        }
-
-        caixa.replaceChildren();
-
-        const resultados = dados.features || [];
-
-        if (resultados.length === 0) {
-          const aviso = document.createElement("div");
-
-          aviso.className = "suggestion-item";
-          aviso.textContent = "Nenhum endereço encontrado.";
-
-          caixa.appendChild(aviso);
-          caixa.hidden = false;
-          return;
-        }
-
-        resultados.forEach(function(feature) {
-          const propriedades = feature.properties || {};
-
-          const botao = document.createElement("button");
-          botao.type = "button";
-          botao.className = "suggestion-item";
-
-          const titulo = document.createElement("strong");
-
-          titulo.textContent =
-            propriedades.name_preferred ||
-            propriedades.name ||
-            "Local encontrado";
-
-          const descricao = document.createElement("small");
-
-          descricao.textContent =
-            propriedades.place_formatted || "";
-
-          botao.appendChild(titulo);
-          botao.appendChild(descricao);
-
-          botao.addEventListener("click", function() {
-            selecionarPonto(tipo, feature);
-          });
-
-          caixa.appendChild(botao);
-        });
-
-        caixa.hidden = false;
-
-      } catch (erro) {
-        if (erro.name === "AbortError") {
-          return;
-        }
-
-        if (sequencia !== sequenciasBusca[tipo]) {
-          return;
-        }
-
-        limparSugestoes(tipo);
-
-        informarStatus(
-          "Não foi possível consultar os endereços. " +
-          "Verifique a conexão ou o acesso ao Mapbox."
-        );
-
-        console.error(
-          "Erro na pesquisa de endereços:",
-          erro
-        );
-      }
-    }
-
-    // CONFIGURAR AUTOCOMPLETE
-
-    function configurarBusca(tipo, campo) {
-      campo.addEventListener("input", function() {
-        cancelarBusca(tipo);
-
-        pontosAcuWay[tipo] = null;
-
-        removerMarcador(tipo);
-        limparSugestoes(tipo);
-        informarStatus("");
-
-        const texto = campo.value.trim();
-
-        if (texto.length < 3) {
-          return;
-        }
-
-        const sequencia = sequenciasBusca[tipo];
-
-        temporizadoresBusca[tipo] = setTimeout(function() {
-          pesquisarEnderecos(
-            tipo,
-            texto,
-            sequencia
-          );
-        }, 450);
-      });
-
-      campo.addEventListener("keydown", function(event) {
-        if (event.key === "Escape") {
-          limparSugestoes(tipo);
-        }
-      });
-    }
-
-    configurarBusca("origem", origem);
-    configurarBusca("destino", destino);
-
-    // INVERTER ORIGEM E DESTINO
-
-    swapButton.addEventListener("click", function() {
-      cancelarBusca("origem");
-      cancelarBusca("destino");
-
-      const valorOrigem = origem.value;
-      origem.value = destino.value;
-      destino.value = valorOrigem;
-
-      const pontoOrigemAnterior = pontosAcuWay.origem;
-
-      pontosAcuWay.origem = pontosAcuWay.destino;
-      pontosAcuWay.destino = pontoOrigemAnterior;
-
-      limparSugestoes("origem");
-      limparSugestoes("destino");
-
-      desenharMarcadores();
-
-      if (
-        pontosAcuWay.origem &&
-        pontosAcuWay.destino
-      ) {
-        informarStatus(
-          "Origem e destino invertidos."
-        );
-      }
-    });
-
-    // FECHAR SUGESTÕES AO CLICAR FORA
-
-    document.addEventListener("click", function(event) {
-      ["origem", "destino"].forEach(function(tipo) {
-        const campo = tipo === "origem"
-          ? origem
-          : destino;
-
-        const caixa = sugestoes[tipo];
-
-        if (
-          !campo.parentElement.contains(event.target) &&
-          !caixa.contains(event.target)
-        ) {
-          limparSugestoes(tipo);
-        }
-      });
-    });
-
-  </script>
-
+  // Controles de zoom e orientação
+  mapaAcuWay.addControl(
+    new mapboxgl.NavigationControl(),
+    "top-right"
+  );
+
+  // Ajuste ao tamanho da tela
+  mapaAcuWay.on("load", function() {
+    mapaAcuWay.resize();
+  });
+</script>
 </body>
 </html>
