@@ -6,6 +6,7 @@
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#123A55">
+
   <title>AçuWay | Plataforma Inteligente de Rotas</title>
 
   <style>
@@ -17,141 +18,395 @@
       --background: #F5F7FA;
       --border: #DCE4EA;
       --text: #243746;
+      --muted: #70808D;
     }
 
     * {
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
+      min-height: 100%;
+    }
+
+    body {
       font-family: Arial, Helvetica, sans-serif;
-      background: var(--background);
+      background: #E7ECF0;
       color: var(--text);
     }
 
-    header {
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--secondary);
+      outline-offset: 2px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: var(--background);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 28px rgba(0,0,0,0.10);
+    }
+
+    /* CABEÇALHO */
+
+    .app-header {
       background: var(--primary);
       color: var(--white);
-      padding: 30px 20px;
       text-align: center;
+      padding: 25px 16px 18px;
     }
 
-    header h1 {
+    .app-header h1 {
       margin: 0;
-      font-size: 32px;
-      letter-spacing: 1px;
+      font-size: 27px;
+      letter-spacing: 0.5px;
     }
 
-    header p {
-      margin: 8px 0 0;
-      font-size: 14px;
+    .app-header p {
+      margin: 6px 0 0;
+      font-size: 11px;
+      opacity: 0.9;
     }
+
+    /* BARRA SUPERIOR */
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toolbar-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 10px;
+      background: #EAF3FA;
+      color: var(--primary);
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* CONTEÚDO */
 
     main {
-      width: 100%;
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 20px 14px;
+      padding: 14px;
+      padding-bottom: 100px;
     }
 
     .card {
       background: var(--white);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+      border: 1px solid #EDF0F3;
+      border-radius: 15px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.04);
     }
 
-    h2 {
-      margin: 0 0 18px;
-      font-size: 21px;
+    .section-title {
+      margin: 0 0 14px;
       color: var(--primary);
-    }
-
-    label {
-      display: block;
-      margin: 14px 0 7px;
-      font-size: 14px;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 9px;
       font-size: 16px;
-      background: var(--white);
     }
 
-    input:focus {
-      outline: 2px solid var(--secondary);
-      outline-offset: 1px;
+    /* CAMPOS DE ROTAS */
+
+    .route-fields {
+      position: relative;
+      padding-right: 48px;
     }
 
-    button {
+    .field {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      margin-bottom: 10px;
+      min-height: 49px;
+    }
+
+    .field-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .field input {
       width: 100%;
-      padding: 14px;
-      margin-top: 14px;
       border: none;
-      border-radius: 9px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
+      outline: none;
+      font-size: 14px;
+      padding: 13px 0;
+      min-width: 0;
+      background: transparent;
+      color: var(--text);
+    }
+
+    .field input:focus-visible {
+      outline: none;
+    }
+
+    .field:focus-within {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 2px #2477B522;
+    }
+
+    .swap-button {
+      position: absolute;
+      right: 0;
+      top: 28px;
+      width: 39px;
+      height: 39px;
+      border: none;
+      border-radius: 10px;
+      background: #EAF3FA;
+      color: var(--secondary);
+      font-size: 22px;
     }
 
     .location-button {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 9px;
       background: #EAF3FA;
       color: var(--secondary);
-    }
-
-    .search-button {
-      background: var(--green);
-      color: var(--white);
-    }
-
-    .map-placeholder {
-      min-height: 300px;
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      background: #EDF3F6;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      text-align: center;
-      color: #647785;
-    }
-
-    .map-placeholder span {
-      font-size: 42px;
+      font-size: 13px;
+      font-weight: bold;
       margin-bottom: 10px;
     }
 
-    .map-placeholder p {
-      margin: 5px 0;
+    .search-button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: var(--green);
+      color: var(--white);
+      font-size: 15px;
+      font-weight: bold;
+      margin-top: 4px;
     }
+
+    /* ROTAS DISPONÍVEIS */
+
+    .routes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .routes-header .section-title {
+      margin-bottom: 0;
+    }
+
+    .routes-count {
+      background: #EAF3FA;
+      color: var(--secondary);
+      border-radius: 20px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .routes-content {
+      padding-top: 15px;
+    }
+
+    .empty-state {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+      padding: 12px 0;
+    }
+
+    .route-item {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .route-item strong {
+      color: var(--primary);
+      font-size: 13px;
+    }
+
+    /* MAPA */
+
+    .map-card {
+      padding: 12px;
+    }
+
+    .map-title {
+      padding: 4px 4px 12px;
+      margin: 0;
+      color: var(--primary);
+      font-size: 16px;
+    }
+
+    #mapa {
+      width: 100%;
+      height: 350px;
+      border-radius: 12px;
+      background: #E9F0F4;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .map-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      color: var(--muted);
+    }
+
+    .map-placeholder .map-icon {
+      font-size: 45px;
+      margin-bottom: 12px;
+    }
+
+    .map-placeholder strong {
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    .map-placeholder p {
+      font-size: 12px;
+      line-height: 1.6;
+      max-width: 240px;
+    }
+
+    /* ASSISTENTE IA */
+
+    .ai-button {
+      position: fixed;
+      right: max(16px, calc((100vw - 430px)/2 + 16px));
+      bottom: 22px;
+      width: 60px;
+      height: 60px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--white);
+      font-size: 28px;
+      box-shadow: 0 5px 18px rgba(18,58,85,0.3);
+      z-index: 20;
+    }
+
+    /* MENU LATERAL */
+
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 90;
+    }
+
+    .menu-overlay[hidden] {
+      display: none;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: max(0px, calc((100vw - 430px)/2));
+      width: min(330px, 85vw);
+      background: var(--white);
+      z-index: 100;
+      padding: 20px;
+      overflow-y: auto;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+
+    .sidebar[hidden] {
+      display: none;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 25px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 19px;
+      margin: 0;
+      color: var(--primary);
+    }
+
+    .sidebar p {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .sidebar-empty {
+      padding: 16px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: var(--background);
+    }
+
+    /* RODAPÉ */
 
     footer {
-      padding: 20px;
+      padding: 15px 15px 28px;
       text-align: center;
-      color: #647785;
-      font-size: 12px;
+      font-size: 11px;
+      color: var(--muted);
     }
 
-    @media (min-width: 768px) {
-      header {
-        padding: 38px 20px;
+    @media (max-width: 430px) {
+      .app {
+        box-shadow: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      button {
+        transition: background 0.2s, transform 0.2s;
       }
 
-      main {
-        padding: 28px;
-      }
-
-      .map-placeholder {
-        min-height: 420px;
+      button:active {
+        transform: scale(0.97);
       }
     }
   </style>
@@ -159,69 +414,340 @@
 
 <body>
 
-  <header>
-    <h1>AçuWay</h1>
-    <p>Diferentes caminhos, um só destino.</p>
-  </header>
+  <div class="app">
 
-  <main>
+    <header class="app-header">
+      <h1>AçuWay</h1>
+      <p>Diferentes caminhos, um só destino.</p>
+    </header>
 
-    <section class="card">
-      <h2>Encontre seu caminho</h2>
-
-      <label for="origem">Origem</label>
-      <input
-        id="origem"
-        type="text"
-        placeholder="Digite o ponto de partida"
-        autocomplete="off"
-      >
+    <nav class="toolbar" aria-label="Menu principal">
 
       <button
-        class="location-button"
+        class="icon-button"
+        id="openMenu"
         type="button"
-        disabled
-        title="Disponível em uma próxima etapa"
+        aria-label="Abrir menu de rotas"
+        aria-controls="sidebar"
+        aria-expanded="false"
       >
-        📍 Usar minha localização atual
+        ☰
       </button>
 
-      <label for="destino">Destino</label>
-      <input
-        id="destino"
-        type="text"
-        placeholder="Para onde deseja ir?"
-        autocomplete="off"
-      >
+      <span class="toolbar-title">
+        Planeje seu trajeto
+      </span>
+
+      <span aria-hidden="true">📍</span>
+
+    </nav>
+
+    <main>
+
+      <section class="card">
+
+        <h2 class="section-title">
+          Encontre seu caminho
+        </h2>
+
+        <div class="route-fields">
+
+          <div class="field">
+            <span class="field-icon" aria-hidden="true">
+              🟢
+            </span>
+
+            <input
+              type="text"
+              id="origem"
+              placeholder="Ponto de partida"
+              aria-label="Origem"
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="field">
+            <span class="field-icon" aria-hidden="true">
+              📍
+            </span>
+
+            <input
+              type="text"
+              id="destino"
+              placeholder="Para onde deseja ir?"
+              aria-label="Destino"
+              autocomplete="off"
+            >
+          </div>
+
+          <button
+            class="swap-button"
+            id="swapButton"
+            type="button"
+            aria-label="Inverter origem e destino"
+            title="Inverter origem e destino"
+          >
+            ⇅
+          </button>
+
+        </div>
+
+        <button
+          class="location-button"
+          id="locationButton"
+          type="button"
+          disabled
+          title="Disponível após integrar a geolocalização"
+        >
+          📍 Usar minha localização atual
+        </button>
+
+        <button
+          class="search-button"
+          id="searchButton"
+          type="button"
+          disabled
+          title="Disponível após integrar o Mapbox"
+        >
+          Buscar rotas
+        </button>
+
+      </section>
+
+      <section class="card">
+
+        <div class="routes-header">
+
+          <h2 class="section-title">
+            Rotas disponíveis
+          </h2>
+
+          <span
+            class="routes-count"
+            id="routesCount"
+          >
+            0 rotas
+          </span>
+
+        </div>
+
+        <div
+          class="routes-content"
+          id="routesList"
+          aria-live="polite"
+        >
+          <div class="empty-state">
+            Informe a origem e o destino para
+            consultar os caminhos disponíveis.
+          </div>
+        </div>
+
+      </section>
+
+      <section class="card map-card">
+
+        <h2 class="map-title">
+          Mapa geral
+        </h2>
+
+        <div id="mapa">
+
+          <div class="map-placeholder">
+
+            <span
+              class="map-icon"
+              aria-hidden="true"
+            >
+              🗺️
+            </span>
+
+            <strong>
+              Seu mapa aparecerá aqui
+            </strong>
+
+            <p>
+              Estamos preparando o mapa
+              interativo do AçuWay.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer>
+      AçuWay — Plataforma Inteligente de Rotas
+    </footer>
+
+  </div>
+
+  <!-- MENU LATERAL -->
+
+  <div
+    class="menu-overlay"
+    id="menuOverlay"
+    hidden
+  ></div>
+
+  <aside
+    class="sidebar"
+    id="sidebar"
+    aria-label="Rotas cadastradas"
+    hidden
+  >
+
+    <div class="sidebar-header">
+
+      <h2>Rotas cadastradas</h2>
 
       <button
-        class="search-button"
+        class="icon-button"
+        id="closeMenu"
         type="button"
-        disabled
-        title="Disponível após integrar o Mapbox"
+        aria-label="Fechar menu"
       >
-        Buscar rotas
+        ×
       </button>
-    </section>
 
-    <section class="card">
-      <h2>Mapa de rotas</h2>
+    </div>
 
-      <div class="map-placeholder" id="mapa">
-        <span aria-hidden="true">🗺️</span>
-        <strong>Seu mapa aparecerá aqui</strong>
-        <p>
-          Em breve você poderá visualizar
-          diferentes caminhos até seu destino.
-        </p>
-      </div>
-    </section>
+    <div class="sidebar-empty">
 
-  </main>
+      <p>
+        Aqui serão exibidas as rotas
+        previamente cadastradas e
+        autorizadas para consulta pública.
+      </p>
 
-  <footer>
-    AçuWay — Plataforma Inteligente de Rotas
-  </footer>
+      <p>
+        Nenhuma rota cadastrada no momento.
+      </p>
+
+    </div>
+
+  </aside>
+
+  <!-- ASSISTENTE DE IA -->
+
+  <button
+    class="ai-button"
+    id="aiButton"
+    type="button"
+    aria-label="Assistente de inteligência artificial"
+    title="Assistente de IA — em desenvolvimento"
+  >
+    🤖
+  </button>
+
+  <script>
+    const openMenu =
+      document.getElementById("openMenu");
+
+    const closeMenu =
+      document.getElementById("closeMenu");
+
+    const sidebar =
+      document.getElementById("sidebar");
+
+    const menuOverlay =
+      document.getElementById("menuOverlay");
+
+    const origem =
+      document.getElementById("origem");
+
+    const destino =
+      document.getElementById("destino");
+
+    const swapButton =
+      document.getElementById("swapButton");
+
+    const aiButton =
+      document.getElementById("aiButton");
+
+    let previousFocus = null;
+
+    function abrirMenu() {
+      previousFocus = document.activeElement;
+
+      sidebar.hidden = false;
+      menuOverlay.hidden = false;
+
+      openMenu.setAttribute(
+        "aria-expanded",
+        "true"
+      );
+
+      document.body.style.overflow = "hidden";
+
+      closeMenu.focus();
+    }
+
+    function fecharMenu() {
+      sidebar.hidden = true;
+      menuOverlay.hidden = true;
+
+      openMenu.setAttribute(
+        "aria-expanded",
+        "false"
+      );
+
+      document.body.style.overflow = "";
+
+      if (previousFocus) {
+        previousFocus.focus();
+      }
+    }
+
+    openMenu.addEventListener(
+      "click",
+      abrirMenu
+    );
+
+    closeMenu.addEventListener(
+      "click",
+      fecharMenu
+    );
+
+    menuOverlay.addEventListener(
+      "click",
+      fecharMenu
+    );
+
+    document.addEventListener(
+      "keydown",
+      function(event) {
+        if (
+          event.key === "Escape" &&
+          !sidebar.hidden
+        ) {
+          fecharMenu();
+        }
+      }
+    );
+
+    swapButton.addEventListener(
+      "click",
+      function() {
+        const valorOrigem = origem.value;
+
+        origem.value = destino.value;
+        destino.value = valorOrigem;
+      }
+    );
+
+    aiButton.addEventListener(
+      "click",
+      function() {
+        alert(
+          "O assistente inteligente do AçuWay " +
+          "será disponibilizado em uma etapa futura."
+        );
+      }
+    );
+  </script>
 
 </body>
 </html>
