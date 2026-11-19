@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#123A55">
+  <title>AçuWay | Plataforma Inteligente de Rotas</title>
+
+  <style>
+    :root {
+      --primary: #123A55;
+      --secondary: #2477B5;
+      --green: #168A67;
+      --white: #FFFFFF;
+      --background: #F5F7FA;
+      --border: #DCE4EA;
+      --text: #243746;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--primary);
+      color: var(--white);
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      font-size: 14px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px 14px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 21px;
+      color: var(--primary);
+    }
+
+    label {
+      display: block;
+      margin: 14px 0 7px;
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 16px;
+      background: var(--white);
+    }
+
+    input:focus {
+      outline: 2px solid var(--secondary);
+      outline-offset: 1px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 14px;
+      border: none;
+      border-radius: 9px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .location-button {
+      background: #EAF3FA;
+      color: var(--secondary);
+    }
+
+    .search-button {
+      background: var(--green);
+      color: var(--white);
+    }
+
+    .map-placeholder {
+      min-height: 300px;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: #EDF3F6;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      text-align: center;
+      color: #647785;
+    }
+
+    .map-placeholder span {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .map-placeholder p {
+      margin: 5px 0;
+    }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      color: #647785;
+      font-size: 12px;
+    }
+
+    @media (min-width: 768px) {
+      header {
+        padding: 38px 20px;
+      }
+
+      main {
+        padding: 28px;
+      }
+
+      .map-placeholder {
+        min-height: 420px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>AçuWay</h1>
+    <p>Diferentes caminhos, um só destino.</p>
+  </header>
+
+  <main>
+
+    <section class="card">
+      <h2>Encontre seu caminho</h2>
+
+      <label for="origem">Origem</label>
+      <input
+        id="origem"
+        type="text"
+        placeholder="Digite o ponto de partida"
+        autocomplete="off"
+      >
+
+      <button
+        class="location-button"
+        type="button"
+        disabled
+        title="Disponível em uma próxima etapa"
+      >
+        📍 Usar minha localização atual
+      </button>
+
+      <label for="destino">Destino</label>
+      <input
+        id="destino"
+        type="text"
+        placeholder="Para onde deseja ir?"
+        autocomplete="off"
+      >
+
+      <button
+        class="search-button"
+        type="button"
+        disabled
+        title="Disponível após integrar o Mapbox"
+      >
+        Buscar rotas
+      </button>
+    </section>
+
+    <section class="card">
+      <h2>Mapa de rotas</h2>
+
+      <div class="map-placeholder" id="mapa">
+        <span aria-hidden="true">🗺️</span>
+        <strong>Seu mapa aparecerá aqui</strong>
+        <p>
+          Em breve você poderá visualizar
+          diferentes caminhos até seu destino.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    AçuWay — Plataforma Inteligente de Rotas
+  </footer>
+
+</body>
+</html>
