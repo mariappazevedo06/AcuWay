@@ -531,6 +531,13 @@
               aria-label="Origem"
               autocomplete="off"
             >
+
+            <div
+            class="suggestions"
+            id="sugestoesOrigem"
+             hidden
+            ></div>
+            
           </div>
 
           <div class="field">
@@ -608,8 +615,9 @@
         <div
           class="routes-content"
           id="routesList"
-          aria-live="polite"
-        >
+          aria-live="polite">
+
+          
           <div class="empty-state">
             Informe a origem e o destino para
             consultar os caminhos disponíveis.
@@ -624,11 +632,8 @@
           Mapa geral
         </h2>
 
-        <<div id="mapa"></div>
-
-        </div>
-
-      </section>
+    <div id="mapa"></div>
+    </section>
 
     </main>
 
