@@ -537,6 +537,9 @@
   background: #D8EBF8;
 }
 
+    .navigation-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .navigation-button { padding: 11px 6px; border: 1px solid #2477B5; border-radius: 8px; background: #EAF3FA; color: #123A55; font-size: 12px; font-weight: bold; }
+    .navigation-button:hover { background: #D8EBF8; }
   </style>
 </head>
 
@@ -559,14 +562,14 @@
         aria-controls="sidebar"
         aria-expanded="false"
       >
-        ☰
+        Menu
       </button>
 
       <span class="toolbar-title">
         Planeje seu trajeto
       </span>
 
-      <span aria-hidden="true">📍</span>
+      
 
     </nav>
 
@@ -584,9 +587,7 @@
 
           <div class="field">
 
-            <span class="field-icon" aria-hidden="true">
-              🟢
-            </span>
+            
 
             <input
               type="text"
@@ -610,9 +611,7 @@
 
           <div class="field">
 
-            <span class="field-icon" aria-hidden="true">
-              📍
-            </span>
+            
 
             <input
               type="text"
@@ -641,7 +640,7 @@
             aria-label="Inverter origem e destino"
             title="Inverter origem e destino"
           >
-            ⇅
+            Inverter
           </button>
 
         </div>
@@ -652,7 +651,7 @@
           type="button"
           title="Utilizar a localização atual como origem"
         >
-          📍 Usar minha localização atual
+           Usar minha localização atual
         </button>
 
         <button
@@ -783,7 +782,7 @@
     aria-label="Assistente de inteligência artificial"
     title="Assistente de IA — em desenvolvimento"
   >
-    🤖
+    IA
   </button>
 
   <script>
@@ -1599,6 +1598,44 @@
       });
     }
 
+    // ABERTURA DE NAVEGAÇÃO EXTERNA
+    function coordenadaParaLatLng(coordenada) {
+      return coordenada[1] + "," + coordenada[0];
+    }
+
+    function abrirNavegacao(indice, aplicativo) {
+      const rota = rotasEncontradas[indice];
+      if (!rota || !pontos.origem || !pontos.destino) return;
+
+      selecionarRota(indice);
+      const inicio = coordenadaParaLatLng(pontos.origem.coordenadas);
+      const fim = coordenadaParaLatLng(pontos.destino.coordenadas);
+      let url;
+
+      if (aplicativo === "google") {
+        const parametros = new URLSearchParams({
+          api: "1", origin: inicio, destination: fim, travelmode: "driving"
+        });
+        // Waypoints aproximam a alternativa no Google Maps, mas o
+        // serviço recalcula a rota. Limite conservador para celular.
+        if (indice > 0 && rota.geometry?.coordinates?.length > 10) {
+          const linha = rota.geometry.coordinates;
+          const indices = [0.25, 0.5, 0.75].map(f =>
+            Math.floor((linha.length - 1) * f)
+          );
+          parametros.set("waypoints", indices.map(i =>
+            coordenadaParaLatLng(linha[i])
+          ).join("|"));
+        }
+        url = "https://www.google.com/maps/dir/?" + parametros.toString();
+      } else {
+        // Links públicos do Waze recebem destino, não geometria da rota.
+        const parametros = new URLSearchParams({ ll: fim, navigate: "yes" });
+        url = "https://waze.com/ul?" + parametros.toString();
+      }
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
     // LISTA DE ROTAS
 
 function renderizarListaRotas() {
@@ -1651,11 +1688,11 @@ function renderizarListaRotas() {
 
     const distancia = document.createElement("span");
     distancia.textContent =
-      "📏 " + formatarDistancia(rota.distance);
+      "Distância: " + formatarDistancia(rota.distance);
 
     const tempo = document.createElement("span");
     tempo.textContent =
-      "⏱️ " + formatarTempo(rota.duration);
+      "Tempo: " + formatarTempo(rota.duration);
 
     detalhes.appendChild(distancia);
     detalhes.appendChild(tempo);
@@ -1679,7 +1716,7 @@ function renderizarListaRotas() {
 
     botaoCopiar.type = "button";
     botaoCopiar.className = "copy-route-button";
-    botaoCopiar.textContent = "🔗 Copiar link";
+    botaoCopiar.textContent = "Copiar link";
 
     botaoCopiar.addEventListener("click", async () => {
       if (!pontos.origem || !pontos.destino) {
@@ -1699,7 +1736,7 @@ function renderizarListaRotas() {
       try {
         await navigator.clipboard.writeText(link.toString());
 
-        botaoCopiar.textContent = "✓ Link copiado!";
+        botaoCopiar.textContent = "Link copiado!";
 
         mostrarStatus("Link copiado para a área de transferência.");
 
@@ -1709,7 +1746,22 @@ function renderizarListaRotas() {
       }
     });
 
+    const botoesNavegacao = document.createElement("div");
+    botoesNavegacao.className = "navigation-actions";
+    [["Google Maps", "google"], ["Waze", "waze"]].forEach(([texto, app]) => {
+      const botao = document.createElement("button");
+      botao.type = "button";
+      botao.className = "navigation-button";
+      botao.textContent = texto;
+      botao.title = app === "waze"
+        ? "Abrir destino no Waze (rota recalculada)"
+        : "Abrir rota no Google Maps (trajeto recalculado)";
+      botao.addEventListener("click", () => abrirNavegacao(indice, app));
+      botoesNavegacao.appendChild(botao);
+    });
+
     item.appendChild(botaoSelecionar);
+    item.appendChild(botoesNavegacao);
     item.appendChild(botaoCopiar);
 
     routesList.appendChild(item);
