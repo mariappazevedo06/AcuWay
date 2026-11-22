@@ -5,9 +5,9 @@
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#123A55">
+  <meta name="theme-color" content="#0B0F14">
 
-  <title>AçuWay | Plataforma Inteligente de Rotas</title>
+  <title>SECURWAY | Plataforma Inteligente de Rotas</title>
 
   <!-- MAPBOX GL JS -->
   <link
@@ -540,6 +540,30 @@
     .navigation-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
     .navigation-button { padding: 11px 6px; border: 1px solid #2477B5; border-radius: 8px; background: #EAF3FA; color: #123A55; font-size: 12px; font-weight: bold; }
     .navigation-button:hover { background: #D8EBF8; }
+  
+/* SECURWAY | identidade corporativa escura — etapa visual */
+:root { --primary:#0B0F14; --secondary:#AAB8C7; --green:#728FA8; --white:#161D25; --background:#0B0F14; --border:#34404C; --text:#E8EDF2; --muted:#AAB8C7; }
+html, body { background:#0B0F14; color:#E8EDF2; }
+body { background:#080B0F; }
+.app { background:#0B0F14; box-shadow:0 0 28px rgba(0,0,0,.45); }
+.app-header { background:#080B0F; border-bottom:1px solid #34404C; }
+.app-header h1 { color:#F4F7FA; letter-spacing:2px; }
+.app-header p { color:#AAB8C7; opacity:1; }
+.toolbar, .card, .sidebar { background:#161D25; border-color:#34404C; }
+.toolbar-title, .section-title, .map-title, .sidebar-header h2, .route-item strong { color:#F4F7FA; }
+.field, .field input, .route-item, .suggestions, .suggestion-item { background:#111820; color:#E8EDF2; border-color:#34404C; }
+.field input::placeholder { color:#91A0AF; }
+.suggestion-item:hover, .suggestion-item:focus-visible { background:#253444; }
+.icon-button, .swap-button, .location-button, .routes-count, .copy-route-button, .navigation-button { background:#263544; color:#E8EDF2; border-color:#536A80; }
+.search-button { background:#54718C; color:#FFFFFF; }
+.search-button:hover { background:#6686A3; }
+.route-item.active { background:#1B2A35; border-color:#8FAFC8; }
+.route-item small, .route-details, .search-status, footer, .sidebar p, .empty-state { color:#AAB8C7; }
+#mapa { background:#121A22; border-color:#34404C; }
+.ai-button { background:#263544; color:#E8EDF2; box-shadow:0 5px 18px rgba(0,0,0,.5); }
+.sidebar-empty { background:#111820; border-color:#34404C; }
+.route-color { border:1px solid #AAB8C7; }
+
   </style>
 </head>
 
@@ -548,8 +572,8 @@
   <div class="app">
 
     <header class="app-header">
-      <h1>AçuWay</h1>
-      <p>Diferentes caminhos, um só destino.</p>
+      <h1>SECURWAY</h1>
+      <p>Rotas inteligentes. Operações seguras.</p>
     </header>
 
     <nav class="toolbar" aria-label="Menu principal">
@@ -722,7 +746,7 @@
     </main>
 
     <footer>
-      AçuWay — Plataforma Inteligente de Rotas
+      SECURWAY — Plataforma Inteligente de Rotas
     </footer>
 
   </div>
@@ -789,7 +813,7 @@
     "use strict";
 
     /*
-     * AÇUWAY
+     * SECURWAY
      * MAPBOX GL JS + GEOCODING + DIRECTIONS
      *
      * Substitua pelo token público pk.
@@ -901,7 +925,7 @@
 
     aiButton.addEventListener("click", () => {
       alert(
-        "O assistente inteligente do AçuWay " +
+        "O assistente inteligente do SECURWAY " +
         "será disponibilizado em uma etapa futura."
       );
     });
@@ -910,7 +934,7 @@
 
     const mapaAcuWay = new mapboxgl.Map({
       container: "mapa",
-      style: "mapbox://styles/mapbox/streets-v12",
+      style: "mapbox://styles/mapbox/dark-v11",
       center: CENTRO_INICIAL,
       zoom: 10,
       attributionControl: true
@@ -1125,86 +1149,95 @@
       return botao;
     }
 
-    async function pesquisarEnderecos(
-      tipo,
-      texto,
-      versao
-    ) {
-      const controlador = new AbortController();
+    // Consulta resultados locais e nacionais para reduzir sugestões irrelevantes.
+    function normalizarBusca(valor) {
+      return String(valor || "").normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase().replace(/[^a-z0-9 ]/g, " ")
+        .replace(/\s+/g, " ").trim();
+    }
 
+    async function pesquisarEnderecos(tipo, texto, versao) {
+      const controlador = new AbortController();
       controladores[tipo] = controlador;
 
-      const parametros = new URLSearchParams({
+      const base = {
         access_token: TOKEN,
         autocomplete: "true",
         country: "br",
         language: "pt",
-        proximity: "-41.05,-21.78",
-        limit: "5",
-        types: "address,place,locality,neighborhood,poi"
-      });
+        limit: "10"
+      };
 
-      const url =
-        "https://api.mapbox.com/geocoding/v5/mapbox.places/" +
-        encodeURIComponent(texto) +
-        ".json?" +
-        parametros.toString();
+      function urlBusca(local) {
+        const parametros = new URLSearchParams(base);
+        if (local) parametros.set("proximity", "-41.05,-21.78");
+        return "https://api.mapbox.com/geocoding/v5/mapbox.places/" +
+          encodeURIComponent(texto) + ".json?" + parametros.toString();
+      }
 
       try {
-        const dados = await consultarAPI(
-          url,
-          controlador.signal
-        );
+        const consultas = await Promise.allSettled([
+          consultarAPI(urlBusca(true), controlador.signal),
+          consultarAPI(urlBusca(false), controlador.signal)
+        ]);
 
-        if (versao !== versoesBusca[tipo]) {
-          return;
+        if (versao !== versoesBusca[tipo]) return;
+        const sucessos = consultas.filter(r => r.status === "fulfilled");
+        if (!sucessos.length) {
+          throw consultas[0].reason || new Error("Falha na busca de endereços.");
         }
 
-        const caixa = sugestoes[tipo];
-
-        caixa.replaceChildren();
-
-        const resultados = dados.features || [];
-
-        if (!resultados.length) {
-          const aviso = document.createElement("div");
-
-          aviso.className = "suggestion-item";
-          aviso.textContent =
-            "Nenhum endereço encontrado.";
-
-          caixa.appendChild(aviso);
-          caixa.hidden = false;
-          return;
-        }
-
-        resultados.forEach(feature => {
-          caixa.appendChild(
-            criarItemSugestao(tipo, feature)
-          );
+        const unicos = new Map();
+        sucessos.forEach(resultado => {
+          (resultado.value.features || []).forEach(feature => {
+            const coords = feature.center || feature.geometry?.coordinates;
+            if (!Array.isArray(coords) || coords.length < 2) return;
+            const chave = feature.id ||
+              normalizarBusca(feature.place_name) + ":" + coords.join(",");
+            if (!unicos.has(chave)) unicos.set(chave, feature);
+          });
         });
 
+        const termo = normalizarBusca(texto);
+        const palavras = termo.split(" ").filter(p => p.length > 2);
+        const pontuar = feature => {
+          const nome = normalizarBusca(feature.text);
+          const endereco = normalizarBusca(feature.place_name);
+          let nota = 0;
+          if (nome === termo) nota += 100;
+          if (nome.startsWith(termo)) nota += 60;
+          if (endereco.includes(termo)) nota += 40;
+          palavras.forEach(p => {
+            if (nome.includes(p)) nota += 12;
+            else if (endereco.includes(p)) nota += 5;
+          });
+          if (feature.relevance) nota += feature.relevance * 15;
+          return nota;
+        };
+
+        const resultados = [...unicos.values()]
+          .sort((a, b) => pontuar(b) - pontuar(a))
+          .slice(0, 10);
+
+        const caixa = sugestoes[tipo];
+        caixa.replaceChildren();
+        if (!resultados.length) {
+          const aviso = document.createElement("div");
+          aviso.className = "suggestion-item";
+          aviso.textContent = "Nenhum local encontrado. Tente incluir cidade e estado.";
+          caixa.appendChild(aviso);
+        } else {
+          resultados.forEach(feature => {
+            caixa.appendChild(criarItemSugestao(tipo, feature));
+          });
+        }
         caixa.hidden = false;
-
       } catch (erro) {
-        if (erro.name === "AbortError") {
-          return;
-        }
-
-        if (versao !== versoesBusca[tipo]) {
-          return;
-        }
-
+        if (erro.name === "AbortError" || versao !== versoesBusca[tipo]) return;
         esconderSugestoes(tipo);
-
-        mostrarStatus(
-          "Erro na pesquisa: " + erro.message
-        );
-
-        console.error(
-          "Erro Geocoding Mapbox:",
-          erro
-        );
+        mostrarStatus("Erro na pesquisa: " + erro.message);
+        console.error("Erro Geocoding Mapbox:", erro);
       }
     }
 
