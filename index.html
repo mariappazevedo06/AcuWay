@@ -1150,92 +1150,423 @@ function render() {
 
 // CÁLCULO DE ROTAS
 
-async function route() {
-  if(
-    !state.origem ||
-    !state.destino
+
+const ROUTE_CONFIG = {
+  maxRotas: 12,
+  maxConsultasExtras: 8,
+  desvioMaximo: 1.8,
+  timeout: 12000
+};
+
+function distanciaMetros(a, b) {
+  const R = 6371000;
+  const rad = n => n * Math.PI / 180;
+
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
+
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) *
+    Math.cos(rad(b.lat)) *
+    Math.sin(dLon / 2) ** 2;
+
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+function pontoIntermediario(a, b, t, deslocamento) {
+  const lat = a.lat + (b.lat - a.lat) * t;
+  const lon = a.lon + (b.lon - a.lon) * t;
+
+  const dx =
+    (b.lon - a.lon) *
+    Math.cos(lat * Math.PI / 180);
+
+  const dy = b.lat - a.lat;
+  const tamanho = Math.hypot(dx, dy) || 1;
+
+  const metrosPorGrau = 111320;
+
+  const latOffset =
+    (dx / tamanho) *
+    deslocamento / metrosPorGrau;
+
+  const lonOffset =
+    (-dy / tamanho) *
+    deslocamento /
+    (
+      metrosPorGrau *
+      Math.max(
+        0.1,
+        Math.cos(lat * Math.PI / 180)
+      )
+    );
+
+  return {
+    lat: lat + latOffset,
+    lon: lon + lonOffset
+  };
+}
+
+function gerarPontosAlternativos(origem, destino) {
+  const distancia = distanciaMetros(
+    origem,
+    destino
+  );
+
+  const deslocamento = Math.min(
+    6500,
+    Math.max(900, distancia * 0.13)
+  );
+
+  const pontos = [];
+
+  for (const t of [0.3, 0.5, 0.7, 0.85]) {
+    pontos.push(
+      pontoIntermediario(
+        origem,
+        destino,
+        t,
+        deslocamento
+      )
+    );
+
+    pontos.push(
+      pontoIntermediario(
+        origem,
+        destino,
+        t,
+        -deslocamento
+      )
+    );
+  }
+
+  return pontos.slice(
+    0,
+    ROUTE_CONFIG.maxConsultasExtras
+  );
+}
+
+async function consultarOSRM(
+  pontos,
+  alternativas = false
+) {
+  const coordenadas = pontos
+    .map(p => `${p.lon},${p.lat}`)
+    .join(';');
+
+  const url = new URL(
+    'https://router.project-osrm.org/route/v1/driving/' +
+    coordenadas
+  );
+
+  url.searchParams.set(
+    'overview',
+    'full'
+  );
+
+  url.searchParams.set(
+    'geometries',
+    'geojson'
+  );
+
+  url.searchParams.set(
+    'alternatives',
+    String(alternativas)
+  );
+
+  url.searchParams.set(
+    'steps',
+    'false'
+  );
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(
+    () => controller.abort(),
+    ROUTE_CONFIG.timeout
+  );
+
+  try {
+    const resposta = await fetch(
+      url,
+      { signal: controller.signal }
+    );
+
+    if (!resposta.ok) {
+      throw new Error(
+        'OSRM retornou HTTP ' +
+        resposta.status
+      );
+    }
+
+    const dados = await resposta.json();
+
+    if (dados.code !== 'Ok') {
+      return [];
+    }
+
+    return (dados.routes || []).filter(
+      rota =>
+        rota.geometry &&
+        rota.geometry.coordinates &&
+        rota.geometry.coordinates.length > 1
+    );
+
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function amostrarTrajeto(rota) {
+  const coords = rota.geometry.coordinates;
+  const resultado = [];
+
+  const total = 24;
+
+  for (let i = 0; i <= total; i++) {
+    const indice = Math.floor(
+      (coords.length - 1) * i / total
+    );
+
+    resultado.push(coords[indice]);
+  }
+
+  return resultado;
+}
+
+function diferencaRotas(a, b) {
+  const amostraA = amostrarTrajeto(a);
+  const amostraB = amostrarTrajeto(b);
+
+  let diferentes = 0;
+
+  for (const ponto of amostraA) {
+    let menor = Infinity;
+
+    for (const outro of amostraB) {
+      const distancia = distanciaMetros(
+        {
+          lat: ponto[1],
+          lon: ponto[0]
+        },
+        {
+          lat: outro[1],
+          lon: outro[0]
+        }
+      );
+
+      menor = Math.min(menor, distancia);
+    }
+
+    if (menor > 350) {
+      diferentes++;
+    }
+  }
+
+  return diferentes / amostraA.length;
+}
+
+function adicionarRotaUnica(
+  lista,
+  candidata,
+  distanciaPrincipal
+) {
+  if (!candidata?.geometry?.coordinates) {
+    return false;
+  }
+
+  if (
+    candidata.distance >
+    distanciaPrincipal *
+    ROUTE_CONFIG.desvioMaximo
   ) {
+    return false;
+  }
+
+  for (const existente of lista) {
+    const diferencaAB = diferencaRotas(
+      candidata,
+      existente
+    );
+
+    const diferencaBA = diferencaRotas(
+      existente,
+      candidata
+    );
+
+    if (
+      diferencaAB < 0.25 &&
+      diferencaBA < 0.25
+    ) {
+      return false;
+    }
+  }
+
+  lista.push(candidata);
+
+  return true;
+}
+
+async function route() {
+  if (!state.origem || !state.destino) {
     msg(
-      'Selecione origem e destino '+
-      'nas sugestões ou no mapa.'
+      'Selecione origem e destino antes de buscar.'
     );
     return;
   }
 
-  const id=++state.request;
+  const id = ++state.request;
+  const botao = $('buscar');
 
-  const btn=$('buscar');
+  botao.disabled = true;
 
-  btn.disabled=true;
+  const origem = { ...state.origem };
+  const destino = { ...state.destino };
 
-  msg('Calculando alternativas…');
-
-  const o=state.origem;
-  const d=state.destino;
-
-  const u=
-    'https://router.project-osrm.org/route/v1/driving/'+
-    o.lon+','+o.lat+';'+
-    d.lon+','+d.lat+
-    '?overview=full'+
-    '&geometries=geojson'+
-    '&alternatives=true'+
-    '&steps=false';
+  msg('Buscando a rota principal...');
 
   try {
-    const res=await fetch(u);
-
-    if(!res.ok) {
-      throw Error(
-        'Serviço de rotas indisponível ('+
-        res.status+
-        ').'
-      );
-    }
-
-    const data=await res.json();
-
-    if(id!==state.request) return;
-
-    if(
-      data.code!=='Ok' ||
-      !data.routes?.length
-    ) {
-      throw Error(
-        'Nenhuma rota encontrada para esses pontos.'
-      );
-    }
-
-    state.rotas=data.routes.filter(
-      r=>r.geometry?.coordinates?.length
+    const principais = await consultarOSRM(
+      [origem, destino],
+      true
     );
 
-    state.selecionada=0;
+    if (id !== state.request) return;
+
+    if (!principais.length) {
+      throw new Error(
+        'Nenhuma rota encontrada.'
+      );
+    }
+
+    principais.sort(
+      (a, b) => a.duration - b.duration
+    );
+
+    const distanciaPrincipal =
+      principais[0].distance;
+
+    const encontradas = [];
+
+    for (const rota of principais) {
+      adicionarRotaUnica(
+        encontradas,
+        rota,
+        distanciaPrincipal
+      );
+    }
+
+    state.rotas = [...encontradas];
+    state.selecionada = 0;
+
+    draw();
+    render();
+    bounds();
+
+    const pontos = gerarPontosAlternativos(
+      origem,
+      destino
+    );
+
+    for (let i = 0; i < pontos.length; i++) {
+      if (id !== state.request) return;
+
+      if (
+        encontradas.length >=
+        ROUTE_CONFIG.maxRotas
+      ) {
+        break;
+      }
+
+      msg(
+        'Explorando caminhos alternativos: ' +
+        (i + 1) +
+        ' de ' +
+        pontos.length +
+        ' consultas. ' +
+        encontradas.length +
+        ' rota(s) encontrada(s).'
+      );
+
+      try {
+        const alternativas = await consultarOSRM(
+          [
+            origem,
+            pontos[i],
+            destino
+          ],
+          false
+        );
+
+        if (id !== state.request) return;
+
+        for (const alternativa of alternativas) {
+          adicionarRotaUnica(
+            encontradas,
+            alternativa,
+            distanciaPrincipal
+          );
+        }
+
+        encontradas.sort(
+          (a, b) => a.duration - b.duration
+        );
+
+        state.rotas = encontradas.slice(
+          0,
+          ROUTE_CONFIG.maxRotas
+        );
+
+        state.selecionada = 0;
+
+        draw();
+        render();
+
+      } catch (erro) {
+        console.warn(
+          'Consulta alternativa não concluída:',
+          erro
+        );
+      }
+    }
+
+    if (id !== state.request) return;
+
+    state.rotas = encontradas.slice(
+      0,
+      ROUTE_CONFIG.maxRotas
+    );
+
+    state.selecionada = 0;
 
     draw();
     render();
     bounds();
 
     msg(
-      state.rotas.length+
-      ' rota(s) retornada(s). '+
-      'O serviço pode oferecer poucas alternativas; '+
-      'isso não significa que não existam outros caminhos.'
+      'Pesquisa concluída: ' +
+      state.rotas.length +
+      ' rota(s) distinta(s) encontrada(s). ' +
+      'As alternativas são experimentais e ' +
+      'devem ser verificadas antes do deslocamento.'
     );
 
-  } catch(e) {
-    if(id===state.request) {
-      msg(
-        'Falha no cálculo: '+
-        e.message
-      );
+  } catch (erro) {
+    if (id === state.request) {
+      console.error(erro);
 
-      console.error(e);
+      msg(
+        'Não foi possível calcular as rotas: ' +
+        erro.message
+      );
     }
+
   } finally {
-    btn.disabled=false;
+    botao.disabled = false;
   }
 }
+
 
 $('buscar').onclick=route;
 
