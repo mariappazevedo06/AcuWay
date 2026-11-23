@@ -879,128 +879,41 @@ function distanciaMetros(a, b) {
 // Baseada nos trechos retornados pelo OSRM.
 // Evita forçar pontos próximos às manobras e em vias sem nome.
 
-function selecionarPontosPassagem(rota, limite = 3) {
+function selecionarPontosPassagem(rota, limite = 2) {
   const coordenadas = rota.geometry?.coordinates || [];
+  if (coordenadas.length < 3 || limite < 1) return [];
 
-  if (coordenadas.length < 3 || limite < 1) {
-    return [];
-  }
-
-  const segmentos = [];
+  const candidatos = [];
 
   for (const leg of rota.legs || []) {
     for (const step of leg.steps || []) {
       if (!step.geometry?.coordinates?.length) continue;
+      if ((step.distance || 0) < 4000) continue; // Apenas trechos longos (>= 4 km)
 
-      segmentos.push({
-        coords: step.geometry.coordinates,
-        distancia: step.distance || 0,
-        nome: step.name || '',
-        tipo: step.maneuver?.type || ''
+      const nome = (step.name || '').trim();
+      const ref = (step.ref || '').trim();
+      if (!nome && !ref) continue;
+
+      const pontos = step.geometry.coordinates;
+      const meio = pontos[Math.floor(pontos.length / 2)];
+
+      candidatos.push({
+        lat: meio[1],
+        lon: meio[0],
+        distancia: step.distance,
+        prioridade: ref ? 2 : 1 // Prioriza rodovias identificadas (BR/RJ)
       });
     }
   }
 
-  if (!segmentos.length) return [];
-
-  // Seleciona somente segmentos suficientemente longos e com nome identificado.
-  // Isso reduz a chance de escolher pontos em cruzamentos ou estradas vicinais rurais.
-  const candidatos = [];
-
-  for (let i = 0; i < segmentos.length; i++) {
-    const trecho = segmentos[i];
-
-    if (trecho.distancia < 2500) continue;
-    if (!trecho.nome || !trecho.nome.trim()) continue;
-    if (trecho.coords.length < 3) continue;
-
-    const anterior = segmentos[i - 1];
-    const posterior = segmentos[i + 1];
-
-    // Prioriza trechos estáveis entre manobras.
-    const pontos = trecho.coords;
-
-    let acumulado = 0;
-    const distancias = [0];
-
-    for (let j = 1; j < pontos.length; j++) {
-      acumulado += distanciaMetros(
-        { lat: pontos[j - 1][1], lon: pontos[j - 1][0] },
-        { lat: pontos[j][1], lon: pontos[j][0] }
-      );
-      distancias.push(acumulado);
-    }
-
-    if (acumulado < 2500) continue;
-
-    const alvo = acumulado / 2;
-    let melhorIndice = 1;
-    let menorDiferenca = Infinity;
-
-    for (let j = 1; j < pontos.length - 1; j++) {
-      const diferenca = Math.abs(distancias[j] - alvo);
-
-      if (diferenca < menorDiferenca) {
-        menorDiferenca = diferenca;
-        melhorIndice = j;
-      }
-    }
-
-    const escolhido = pontos[melhorIndice];
-
-    candidatos.push({
-      lat: escolhido[1],
-      lon: escolhido[0],
-      distancia: trecho.distancia,
-      nome: trecho.nome,
-      indiceTrecho: i,
-      anterior: anterior?.nome || '',
-      posterior: posterior?.nome || ''
-    });
-  }
-
   if (!candidatos.length) return [];
 
-  // Evita excesso de pontos, principalmente em
-  // trajetos que passam por muitas vias.
-  const quantidade = Math.min(
-    limite,
-    candidatos.length,
-    Math.max(1, Math.floor(rota.distance / 40000))
-  );
+  // Ordena priorizando rodovias (ref) e trechos mais longos
+  candidatos.sort((a, b) => (b.prioridade - a.prioridade) || (b.distancia - a.distancia));
 
-  // Distribui os pontos ao longo da sequência de trechos.
-  const selecionados = [];
-
-  for (let i = 0; i < quantidade; i++) {
-    const alvo = (i + 1) * candidatos.length /
-      (quantidade + 1);
-
-    const indice = Math.min(
-      candidatos.length - 1,
-      Math.floor(alvo)
-    );
-
-    const candidato = candidatos[indice];
-
-    if (!selecionados.some(p =>
-      distanciaMetros(p, candidato) < 1500
-    )) {
-      selecionados.push(candidato);
-    }
-  }
-
-  console.log(
-    'SECURWAY | Pontos intermediários:',
-    selecionados
-  );
-
-  return selecionados.map(p => ({
-    lat: p.lat,
-    lon: p.lon
-  }));
+  const quantidade = Math.min(limite, candidatos.length, rota.distance > 50000 ? 2 : 1);
+  return candidatos.slice(0, quantidade).map(p => ({ lat: p.lat, lon: p.lon }));
 }
-
 // GERAÇÃO DO LINK DO GOOGLE MAPS
 
 function googleLink(rota, usarPontos = true) {
@@ -1373,15 +1286,16 @@ function rotaTemRetornoOuLaco(rota) {
   }
 
   const coords = rota.geometry.coordinates;
-  const passo = Math.max(1, Math.floor(coords.length / 60));
+  const passo = Math.max(1, Math.floor(coords.length / 80));
 
   for (let i = 0; i < coords.length; i += passo) {
-    for (let j = i + passo * 4; j < coords.length; j += passo) {
+    for (let j = i + passo * 5; j < coords.length; j += passo) {
       const dist = distanciaMetros(
         { lat: coords[i][1], lon: coords[i][0] },
         { lat: coords[j][1], lon: coords[j][0] }
       );
-      if (dist < 60) return true;
+      // Se a rota volta a passar a menos de 400m de um ponto onde já passou antes, é um laço/desvio inútil
+      if (dist < 400) return true;
     }
   }
 
