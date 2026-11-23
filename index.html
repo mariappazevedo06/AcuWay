@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b0f14">
 <title>SECURWAY</title>
 
@@ -875,221 +875,134 @@ function distanciaMetros(a, b) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-// GOOGLE MAPS: PONTOS DISTRIBUÍDOS PELA DISTÂNCIA
+// GOOGLE MAPS: SELEÇÃO DE PONTOS
+// Baseada nos trechos retornados pelo OSRM.
+// Evita forçar pontos próximos às manobras.
 
+function selecionarPontosPassagem(rota, limite = 3) {
+  const coordenadas = rota.geometry?.coordinates || [];
 
-function selecionarPontosPassagem(rota, limite = 9) {
-  const coords = rota.geometry?.coordinates || [];
-
-  if (coords.length < 3 || limite < 1) {
+  if (coordenadas.length < 3 || limite < 1) {
     return [];
   }
 
-  const rad = n => n * Math.PI / 180;
+  const segmentos = [];
 
-  function distancia(a, b) {
-    return distanciaMetros(
-      { lat: a[1], lon: a[0] },
-      { lat: b[1], lon: b[0] }
-    );
+  for (const leg of rota.legs || []) {
+    for (const step of leg.steps || []) {
+      if (!step.geometry?.coordinates?.length) continue;
+
+      segmentos.push({
+        coords: step.geometry.coordinates,
+        distancia: step.distance || 0,
+        nome: step.name || '',
+        tipo: step.maneuver?.type || ''
+      });
+    }
   }
 
-  const acumulada = [0];
+  if (!segmentos.length) return [];
 
-  for (let i = 1; i < coords.length; i++) {
-    acumulada[i] =
-      acumulada[i - 1] +
-      distancia(coords[i - 1], coords[i]);
-  }
+  // Seleciona somente segmentos suficientemente longos.
+  // Isso reduz a chance de escolher pontos em cruzamentos.
+  const candidatos = [];
 
-  const total = acumulada[acumulada.length - 1];
+  for (let i = 0; i < segmentos.length; i++) {
+    const trecho = segmentos[i];
 
-  if (total < 1000) return [];
+    if (trecho.distancia < 2500) continue;
+    if (trecho.coords.length < 3) continue;
 
-  function indiceNaDistancia(alvo) {
-    let inicio = 0;
-    let fim = acumulada.length - 1;
+    const anterior = segmentos[i - 1];
+    const posterior = segmentos[i + 1];
 
-    while (inicio < fim) {
-      const meio = Math.floor((inicio + fim) / 2);
+    // Prioriza trechos estáveis entre manobras.
+    const pontos = trecho.coords;
 
-      if (acumulada[meio] < alvo) {
-        inicio = meio + 1;
-      } else {
-        fim = meio;
+    let acumulado = 0;
+    const distancias = [0];
+
+    for (let j = 1; j < pontos.length; j++) {
+      acumulado += distanciaMetros(
+        { lat: pontos[j - 1][1], lon: pontos[j - 1][0] },
+        { lat: pontos[j][1], lon: pontos[j][0] }
+      );
+      distancias.push(acumulado);
+    }
+
+    if (acumulado < 2500) continue;
+
+    const alvo = acumulado / 2;
+    let melhorIndice = 1;
+    let menorDiferenca = Infinity;
+
+    for (let j = 1; j < pontos.length - 1; j++) {
+      const diferenca = Math.abs(distancias[j] - alvo);
+
+      if (diferenca < menorDiferenca) {
+        menorDiferenca = diferenca;
+        melhorIndice = j;
       }
     }
 
-    return inicio;
+    const escolhido = pontos[melhorIndice];
+
+    candidatos.push({
+      lat: escolhido[1],
+      lon: escolhido[0],
+      distancia: trecho.distancia,
+      nome: trecho.nome,
+      indiceTrecho: i,
+      anterior: anterior?.nome || '',
+      posterior: posterior?.nome || ''
+    });
   }
 
-  function direcao(a, b) {
-    const latitudeMedia = rad((a[1] + b[1]) / 2);
+  if (!candidatos.length) return [];
 
-    return Math.atan2(
-      b[1] - a[1],
-      (b[0] - a[0]) * Math.cos(latitudeMedia)
-    );
-  }
-
-  function diferencaAngular(a, b) {
-    return Math.abs(
-      Math.atan2(
-        Math.sin(a - b),
-        Math.cos(a - b)
-      )
-    ) * 180 / Math.PI;
-  }
-
-  // Usa menos pontos em percursos curtos.
-  // Em trajetos longos, aumenta gradualmente.
+  // Evita excesso de pontos, principalmente em
+  // trajetos que passam por muitas vias.
   const quantidade = Math.min(
     limite,
-    Math.max(0, Math.ceil(total / 12000) - 1)
+    candidatos.length,
+    Math.max(1, Math.floor(rota.distance / 40000))
   );
 
-  if (!quantidade) return [];
+  // Distribui os pontos ao longo da sequência de trechos.
+  const selecionados = [];
 
-  const escolhidos = [];
+  for (let i = 0; i < quantidade; i++) {
+    const alvo = (i + 1) * candidatos.length /
+      (quantidade + 1);
 
-  // Janela de análise para identificar
-  // segmentos relativamente retos.
-  const janela = Math.min(
-    350,
-    Math.max(80, total / 100)
-  );
-
-  // Margem para evitar pontos muito
-  // próximos da origem ou destino.
-  const margem = Math.min(
-    1000,
-    total * 0.08
-  );
-
-  const intervalo = total / (quantidade + 1);
-
-  for (let n = 1; n <= quantidade; n++) {
-    const alvo = intervalo * n;
-
-    let melhor = null;
-    let menorPontuacao = Infinity;
-
-    // Busca um trecho estável próximo
-    // da posição desejada.
-    const alcance = Math.min(
-      1800,
-      intervalo * 0.35
+    const indice = Math.min(
+      candidatos.length - 1,
+      Math.floor(alvo)
     );
 
-    const passo = Math.max(
-      30,
-      Math.min(100, alcance / 12)
-    );
+    const candidato = candidatos[indice];
 
-    for (
-      let deslocamento = -alcance;
-      deslocamento <= alcance;
-      deslocamento += passo
-    ) {
-      const pos = alvo + deslocamento;
-
-      if (
-        pos <= margem ||
-        pos >= total - margem
-      ) {
-        continue;
-      }
-
-      const i = indiceNaDistancia(pos);
-
-      if (i <= 0 || i >= coords.length - 1) {
-        continue;
-      }
-
-      const antes = indiceNaDistancia(
-        Math.max(0, pos - janela)
-      );
-
-      const depois = indiceNaDistancia(
-        Math.min(total, pos + janela)
-      );
-
-      if (antes >= i || depois <= i) {
-        continue;
-      }
-
-      const entrada = direcao(
-        coords[antes],
-        coords[i]
-      );
-
-      const saida = direcao(
-        coords[i],
-        coords[depois]
-      );
-
-      const curva = diferencaAngular(
-        entrada,
-        saida
-      );
-
-      // Compara o comprimento do trecho
-      // com a distância direta.
-      const comprimento =
-        acumulada[depois] - acumulada[antes];
-
-      const direto = distancia(
-        coords[antes],
-        coords[depois]
-      );
-
-      const fatorDesvio =
-        comprimento / Math.max(direto, 1);
-
-      // Rejeita curvas fortes, retornos
-      // e trechos muito sinuosos.
-      if (curva > 20 || fatorDesvio > 1.12) {
-        continue;
-      }
-
-      const muitoProximo = escolhidos.some(
-        p => Math.abs(p.pos - pos) <
-          Math.min(700, intervalo * 0.4)
-      );
-
-      if (muitoProximo) continue;
-
-      const pontuacao =
-        curva * 4 +
-        Math.max(0, fatorDesvio - 1) * 500 +
-        Math.abs(deslocamento) / 100;
-
-      if (pontuacao < menorPontuacao) {
-        menorPontuacao = pontuacao;
-        melhor = {
-          indice: i,
-          pos
-        };
-      }
-    }
-
-    // Não força pontos quando não
-    // encontra um trecho adequado.
-    if (melhor) {
-      escolhidos.push(melhor);
+    if (!selecionados.some(p =>
+      distanciaMetros(p, candidato) < 1500
+    )) {
+      selecionados.push(candidato);
     }
   }
 
-  escolhidos.sort((a, b) => a.pos - b.pos);
+  console.log(
+    'SECURWAY | Pontos intermediários:',
+    selecionados
+  );
 
-  return escolhidos.map(p => ({
-    lat: coords[p.indice][1],
-    lon: coords[p.indice][0]
+  return selecionados.map(p => ({
+    lat: p.lat,
+    lon: p.lon
   }));
 }
 
+// GERAÇÃO DO LINK DO GOOGLE MAPS
 
-function googleLink(rota) {
+function googleLink(rota, usarPontos = true) {
   const url = new URL(
     'https://www.google.com/maps/dir/'
   );
@@ -1113,17 +1026,13 @@ function googleLink(rota) {
       navigator.userAgent
     );
 
-  // Limites conservadores.
-  // O Google Maps pode aplicar outros limites
-  // dependendo de onde o link for aberto.
-  const limite = navegadorMovel ? 3 : 9;
+  const limite = navegadorMovel ? 3 : 3;
 
-  const pontos = selecionarPontosPassagem(
-    rota,
-    limite
-  );
+  const pontos = usarPontos
+    ? selecionarPontosPassagem(rota, limite)
+    : [];
 
-  if (pontos.length > 0) {
+  if (pontos.length) {
     url.searchParams.set(
       'waypoints',
       pontos.map(p =>
@@ -1134,17 +1043,17 @@ function googleLink(rota) {
   }
 
   console.log(
-    'SECURWAY | Distância:',
-    fmtKm(rota.distance),
-    '| Pontos enviados:',
-    pontos.length,
-    '| Coordenadas:',
-    pontos
+    'SECURWAY | Google Maps',
+    {
+      distanciaOriginal: fmtKm(rota.distance),
+      quantidadePontos: pontos.length,
+      pontos,
+      url: url.toString()
+    }
   );
 
   return url.toString();
 }
-
 
 // IDENTIFICAÇÃO DAS VIAS
 
@@ -1239,6 +1148,22 @@ function render() {
             msg(
               'Abrindo Google Maps com pontos de passagem. ' +
               'Confira o percurso antes de iniciar.'
+            );
+          }
+        ],
+        [
+          'Comparar sem pontos',
+          'map',
+          () => {
+            window.open(
+              googleLink(r, false),
+              '_blank',
+              'noopener,noreferrer'
+            );
+
+            msg(
+              'Google Maps aberto sem pontos intermediários ' +
+              'para comparação.'
             );
           }
         ],
@@ -1617,8 +1542,6 @@ async function route() {
       );
     }
   } finally {
-    // Não reabilitar o botão de uma busca
-    // antiga se outra busca já começou.
     if (id === state.request) {
       botao.disabled = false;
     }
