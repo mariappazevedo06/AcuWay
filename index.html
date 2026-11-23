@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -5,10 +6,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b0f14">
 <title>SECURWAY</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
 <style>
 :root {
-  color-scheme: dark;
+  color-scheme:dark;
   --bg:#0b0f14;
   --panel:#161d25;
   --field:#101820;
@@ -17,223 +21,397 @@
   --muted:#acbac8;
   --accent:#8ab4d8;
 }
+
 * { box-sizing:border-box; }
+
 body {
   margin:0;
   background:var(--bg);
   color:var(--text);
   font:15px system-ui,Arial,sans-serif;
 }
+
 button,input { font:inherit; }
 button { cursor:pointer; }
 button:disabled { opacity:.5;cursor:wait; }
+
 button:focus-visible,input:focus-visible {
   outline:2px solid var(--accent);
   outline-offset:2px;
 }
-.shell { max-width:1120px;margin:auto;padding:16px; }
-.head {
-  display:flex;justify-content:space-between;
-  align-items:center;gap:12px;padding:8px 0 18px;
+
+.shell {
+  max-width:1120px;
+  margin:auto;
+  padding:16px;
 }
-.brand { font-size:25px;letter-spacing:2px;font-weight:800; }
-.subtitle { font-size:12px;color:var(--muted); }
+
+.head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding:8px 0 18px;
+}
+
+.brand {
+  font-size:25px;
+  letter-spacing:2px;
+  font-weight:800;
+}
+
+.subtitle {
+  font-size:12px;
+  color:var(--muted);
+}
+
 .layout {
   display:grid;
   grid-template-columns:minmax(310px,390px) minmax(0,1fr);
-  gap:16px;align-items:start;
+  gap:16px;
+  align-items:start;
 }
+
 .panel {
-  background:var(--panel);border:1px solid var(--line);
-  border-radius:16px;padding:16px;margin-bottom:14px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
 }
-h2 { font-size:17px;margin:0 0 14px; }
-.field { position:relative;margin-bottom:13px; }
+
+h2 {
+  font-size:17px;
+  margin:0 0 14px;
+}
+
+.field {
+  position:relative;
+  margin-bottom:13px;
+}
+
 .field label {
-  display:block;font-size:12px;color:var(--muted);
+  display:block;
+  font-size:12px;
+  color:var(--muted);
   margin-bottom:6px;
 }
+
 .field input {
-  width:100%;border:1px solid var(--line);
-  border-radius:10px;background:var(--field);
-  color:var(--text);padding:13px;
+  width:100%;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--field);
+  color:var(--text);
+  padding:13px;
 }
-.actions { display:flex;flex-wrap:wrap;gap:8px; }
+
+.actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
 .btn {
-  background:#26394b;border:1px solid #526b82;
-  border-radius:10px;color:var(--text);padding:11px 13px;
+  background:#26394b;
+  border:1px solid #526b82;
+  border-radius:10px;
+  color:var(--text);
+  padding:11px 13px;
 }
+
 .btn.primary {
-  background:#547c9c;border-color:#729aba;
-  color:white;font-weight:700;flex:1;
+  background:#547c9c;
+  border-color:#729aba;
+  color:white;
+  font-weight:700;
+  flex:1;
 }
-.btn.small { padding:8px 10px;font-size:12px; }
+
+.btn.small {
+  padding:8px 10px;
+  font-size:12px;
+}
+
 .suggest {
-  position:absolute;z-index:1000;top:100%;
-  left:0;right:0;background:#202d39;
-  border:1px solid #526b82;border-radius:10px;
-  max-height:260px;overflow:auto;
+  position:absolute;
+  z-index:1000;
+  top:100%;
+  left:0;
+  right:0;
+  background:#202d39;
+  border:1px solid #526b82;
+  border-radius:10px;
+  max-height:260px;
+  overflow:auto;
   box-shadow:0 10px 20px #0008;
 }
-.suggest[hidden] { display:none; }
-.suggest button {
-  display:block;text-align:left;width:100%;
-  padding:11px;border:0;
-  border-bottom:1px solid var(--line);
-  background:transparent;color:white;
+
+.suggest[hidden] {
+  display:none;
 }
-.suggest button:hover,.suggest button:focus {
+
+.suggest button {
+  display:block;
+  text-align:left;
+  width:100%;
+  padding:11px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  background:transparent;
+  color:white;
+}
+
+.suggest button:hover,
+.suggest button:focus {
   background:#334b60;
 }
+
 .suggest small {
-  display:block;color:var(--muted);margin-top:4px;
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
 }
+
 .status {
-  min-height:25px;font-size:13px;
-  color:var(--muted);line-height:1.5;
+  min-height:25px;
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.5;
 }
+
 .route {
-  width:100%;text-align:left;background:#111b25;
-  color:white;border:1px solid var(--line);
-  border-radius:10px;padding:12px;margin-bottom:9px;
+  width:100%;
+  text-align:left;
+  background:#111b25;
+  color:white;
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px;
+  margin-bottom:9px;
 }
+
 .route.active {
-  border:2px solid var(--accent);background:#203246;
+  border:2px solid var(--accent);
+  background:#203246;
 }
+
 .route small {
-  display:block;color:var(--muted);margin-top:5px;
+  display:block;
+  color:var(--muted);
+  margin-top:5px;
 }
+
 .route-tools {
-  display:flex;gap:7px;flex-wrap:wrap;margin:0 0 14px;
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  margin:0 0 14px;
 }
-.empty { color:var(--muted);font-size:13px; }
-.map-panel { padding:10px; }
+
+.empty {
+  color:var(--muted);
+  font-size:13px;
+}
+
+.map-panel {
+  padding:10px;
+}
+
 .map-header {
-  display:flex;justify-content:space-between;
-  align-items:center;padding:6px 6px 12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 6px 12px;
 }
+
 #map {
-  height:min(75vh,720px);min-height:430px;
-  border-radius:12px;background:#25313d;
+  height:min(75vh,720px);
+  min-height:430px;
+  border-radius:12px;
+  background:#25313d;
 }
-.leaflet-container { font:inherit; }
-.leaflet-popup-content-wrapper,.leaflet-popup-tip {
-  background:#1b2835;color:white;
+
+.leaflet-container {
+  font:inherit;
 }
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background:#1b2835;
+  color:white;
+}
+
 .foot {
-  font-size:11px;color:var(--muted);
-  line-height:1.6;margin-top:16px;
+  font-size:11px;
+  color:var(--muted);
+  line-height:1.6;
+  margin-top:16px;
 }
+
 .badge {
-  font-size:12px;background:#26394b;
-  padding:5px 9px;border-radius:20px;
+  font-size:12px;
+  background:#26394b;
+  padding:5px 9px;
+  border-radius:20px;
 }
+
 .dot {
-  display:inline-block;width:11px;height:11px;
-  border-radius:50%;margin-right:7px;
+  display:inline-block;
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  margin-right:7px;
 }
+
 .notice {
-  font-size:12px;color:var(--muted);line-height:1.5;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
 }
+
 a { color:#a8d3ff; }
+
 @media(max-width:760px) {
-  .layout { grid-template-columns:1fr; }
-  .shell { padding:12px; }
-  #map { height:440px;min-height:360px; }
+  .layout {
+    grid-template-columns:1fr;
+  }
+
+  .shell {
+    padding:12px;
+  }
+
+  #map {
+    height:440px;
+    min-height:360px;
+  }
 }
 </style>
 </head>
+
 <body>
 <div class="shell">
-  <header class="head">
-    <div>
-      <div class="brand">SECURWAY</div>
-      <div class="subtitle">Rotas mais inteligentes. Decisões mais seguras.</div>
-    </div>
-  </header>
 
-  <div class="layout">
-    <div>
-      <section class="panel">
-        <h2>Planeje seu trajeto</h2>
-
-        <div class="field">
-          <label for="origem">Origem</label>
-          <input id="origem" autocomplete="off"
-            placeholder="Pesquise um local ou use sua posição"
-            aria-autocomplete="list">
-          <div class="suggest" id="sugOrigem" hidden></div>
-        </div>
-
-        <div class="field">
-          <label for="destino">Destino</label>
-          <input id="destino" autocomplete="off"
-            placeholder="Cidade, rua ou estabelecimento"
-            aria-autocomplete="list">
-          <div class="suggest" id="sugDestino" hidden></div>
-        </div>
-
-        <div class="actions" style="margin-bottom:10px">
-          <button class="btn" id="localizar">Minha localização</button>
-          <button class="btn" id="inverter">Inverter</button>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" id="buscar">Buscar rotas</button>
-        </div>
-
-        <p class="status" id="status" role="status" aria-live="polite">
-          Selecione os locais nas sugestões ou clique no mapa
-          para definir um ponto.
-        </p>
-      </section>
-
-      <section class="panel">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-          <h2>Rotas encontradas</h2>
-          <span class="badge" id="contagem">0 rotas</span>
-        </div>
-        <div id="lista">
-          <p class="empty">Escolha origem e destino para começar.</p>
-        </div>
-        <p class="notice">
-          As alternativas dependem do serviço de roteamento.
-          Não são todas as combinações possíveis.
-          Tempos são estimativas, sem trânsito ao vivo.
-          Confira as condições reais das vias.
-        </p>
-      </section>
-    </div>
-
-    <div>
-      <section class="panel map-panel">
-        <div class="map-header">
-          <strong>Mapa interativo</strong>
-          <button class="btn small" id="ajustar">Enquadrar</button>
-        </div>
-        <div id="map" aria-label="Mapa de rotas"></div>
-        <div class="actions" style="padding:10px 4px 0">
-          <button class="btn small" id="modoOrigem">
-            Definir origem no mapa
-          </button>
-          <button class="btn small" id="modoDestino">
-            Definir destino no mapa
-          </button>
-        </div>
-      </section>
+<header class="head">
+  <div>
+    <div class="brand">SECURWAY</div>
+    <div class="subtitle">
+      Rotas mais inteligentes. Decisões mais seguras.
     </div>
   </div>
+</header>
 
-  <footer class="foot">
-    SECURWAY • Mapa © OpenStreetMap contributors •
-    Busca: Photon (Komoot) • Rotas: OSRM público de demonstração.
-    Serviços gratuitos sujeitos a limites e indisponibilidade.
-    Não indicado para navegação crítica ou implantação
-    corporativa sem infraestrutura adequada.
-  </footer>
+<div class="layout">
+
+<div>
+
+<section class="panel">
+  <h2>Planeje seu trajeto</h2>
+
+  <div class="field">
+    <label for="origem">Origem</label>
+    <input
+      id="origem"
+      autocomplete="off"
+      placeholder="Pesquise um local ou use sua posição"
+      aria-autocomplete="list"
+    >
+    <div class="suggest" id="sugOrigem" hidden></div>
+  </div>
+
+  <div class="field">
+    <label for="destino">Destino</label>
+    <input
+      id="destino"
+      autocomplete="off"
+      placeholder="Cidade, rua ou estabelecimento"
+      aria-autocomplete="list"
+    >
+    <div class="suggest" id="sugDestino" hidden></div>
+  </div>
+
+  <div class="actions" style="margin-bottom:10px">
+    <button class="btn" id="localizar">
+      Minha localização
+    </button>
+
+    <button class="btn" id="inverter">
+      Inverter
+    </button>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary" id="buscar">
+      Buscar rotas
+    </button>
+  </div>
+
+  <p class="status" id="status"
+     role="status" aria-live="polite">
+    Selecione os locais nas sugestões ou clique no mapa
+    para definir um ponto.
+  </p>
+</section>
+
+<section class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <h2>Rotas encontradas</h2>
+    <span class="badge" id="contagem">0 rotas</span>
+  </div>
+
+  <div id="lista">
+    <p class="empty">
+      Escolha origem e destino para começar.
+    </p>
+  </div>
+
+  <p class="notice">
+    As alternativas dependem do serviço de roteamento.
+    Não são todas as combinações possíveis.
+    Tempos são estimativas, sem trânsito ao vivo.
+    Confira as condições reais das vias.
+  </p>
+</section>
+
+</div>
+
+<div>
+<section class="panel map-panel">
+  <div class="map-header">
+    <strong>Mapa interativo</strong>
+    <button class="btn small" id="ajustar">
+      Enquadrar
+    </button>
+  </div>
+
+  <div id="map" aria-label="Mapa de rotas"></div>
+
+  <div class="actions" style="padding:10px 4px 0">
+    <button class="btn small" id="modoOrigem">
+      Definir origem no mapa
+    </button>
+
+    <button class="btn small" id="modoDestino">
+      Definir destino no mapa
+    </button>
+  </div>
+</section>
+</div>
+
+</div>
+
+<footer class="foot">
+  SECURWAY • Mapa © OpenStreetMap contributors •
+  Busca: Photon (Komoot) • Rotas: OSRM público de demonstração.
+  Serviços gratuitos sujeitos a limites e indisponibilidade.
+  Não indicado para navegação crítica ou implantação
+  corporativa sem infraestrutura adequada.
+</footer>
+
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
 'use strict';
 
@@ -250,8 +428,13 @@ const state = {
 };
 
 const colors = [
-  '#70e0ae','#73baff','#e8ad62',
-  '#d3a0ed','#f28f91','#e2d16d','#65d2d4'
+  '#70e0ae',
+  '#73baff',
+  '#e8ad62',
+  '#d3a0ed',
+  '#f28f91',
+  '#e2d16d',
+  '#65d2d4'
 ];
 
 const map = L.map('map',{zoomControl:true})
@@ -261,12 +444,14 @@ L.tileLayer(
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
     maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }
 ).addTo(map);
 
 const routeLayer = L.layerGroup().addTo(map);
 const pointLayer = L.layerGroup().addTo(map);
+
 let drawn = [];
 
 function msg(s) {
@@ -282,25 +467,35 @@ function fmtKm(m) {
 
 function fmtTime(s) {
   let m=Math.round(s/60);
-  return m<60 ? m+' min' :
-    Math.floor(m/60)+' h '+(m%60)+' min';
+
+  return m<60
+    ? m+' min'
+    : Math.floor(m/60)+' h '+(m%60)+' min';
 }
 
 function invalidate() {
   state.request++;
   state.rotas=[];
+  state.selecionada=0;
   routeLayer.clearLayers();
+
   $('lista').innerHTML =
     '<p class="empty">Busque rotas para visualizar alternativas.</p>';
+
   $('contagem').textContent='0 rotas';
 }
 
 function setPoint(type,point) {
   state[type]=point;
   $(type).value=point.name;
+
   invalidate();
   markers();
-  msg((type==='origem'?'Origem':'Destino')+' definida.');
+
+  msg(
+    (type==='origem'?'Origem':'Destino')+
+    ' definida.'
+  );
 }
 
 function markers() {
@@ -308,132 +503,291 @@ function markers() {
 
   for(const type of ['origem','destino']) {
     const p=state[type];
+
     if(!p) continue;
 
     L.circleMarker([p.lat,p.lon],{
       radius:9,
       color:'#fff',
       weight:2,
-      fillColor:type==='origem'?'#36c58e':'#e88d67',
+      fillColor:
+        type==='origem'?'#36c58e':'#e88d67',
       fillOpacity:1
     })
     .addTo(pointLayer)
-    .bindPopup((type==='origem'?'Origem: ':'Destino: ')+p.name);
+    .bindPopup(
+      (type==='origem'?'Origem: ':'Destino: ')+
+      p.name
+    );
   }
 }
+
+// NORMALIZAÇÃO MELHORADA DOS LOCAIS
 
 function normalizeFeature(f) {
   const p=f.properties||{};
   const c=f.geometry?.coordinates;
-  if(!c) return null;
 
-  const parts=[
-    p.name,p.street,p.housenumber,
-    p.city,p.state,p.country
+  if(!c || c.length<2) return null;
+
+  const titulo =
+    p.name ||
+    p.street ||
+    p.city ||
+    p.locality ||
+    'Local encontrado';
+
+  const endereco=[
+    p.street,
+    p.housenumber,
+    p.suburb || p.district,
+    p.city || p.locality,
+    p.state,
+    p.country
   ].filter(Boolean);
+
+  const descricao=[...new Set(endereco)].join(', ');
 
   return {
     lat:c[1],
     lon:c[0],
-    name:parts.join(', ')||
-      `${c[1].toFixed(5)}, ${c[0].toFixed(5)}`,
-    short:p.name||p.street||p.city||'Local encontrado'
+    name:descricao
+      ? titulo+' — '+descricao
+      : titulo,
+    short:titulo
   };
 }
 
 function hide(type) {
-  $('sug'+(type==='origem'?'Origem':'Destino')).hidden=true;
+  $('sug'+
+    (type==='origem'?'Origem':'Destino')
+  ).hidden=true;
 }
+
+// PESQUISA MELHORADA: LOCAL + GERAL
 
 async function photon(q,signal) {
-  const url=new URL('https://photon.komoot.io/api/');
-  url.searchParams.set('q',q);
-  url.searchParams.set('limit','8');
-  url.searchParams.set('lang','pt');
-  url.searchParams.set('lat','-21.78');
-  url.searchParams.set('lon','-41.05');
+  const consultas=[];
 
-  const r=await fetch(url,{signal});
+  const local=new URL(
+    'https://photon.komoot.io/api/'
+  );
 
-  if(!r.ok) {
-    throw Error('Pesquisa temporariamente indisponível ('+
-      r.status+').');
+  local.searchParams.set('q',q);
+  local.searchParams.set('limit','10');
+  local.searchParams.set('lat','-21.78');
+  local.searchParams.set('lon','-41.05');
+
+  const geral=new URL(
+    'https://photon.komoot.io/api/'
+  );
+
+  geral.searchParams.set('q',q);
+  geral.searchParams.set('limit','10');
+
+  consultas.push(local,geral);
+
+  const resultados=await Promise.allSettled(
+    consultas.map(async url=>{
+      const resposta=await fetch(url,{signal});
+
+      if(!resposta.ok) {
+        throw new Error(
+          'Erro na pesquisa: '+resposta.status
+        );
+      }
+
+      const dados=await resposta.json();
+      return dados.features||[];
+    })
+  );
+
+  if(signal.aborted) {
+    throw new DOMException(
+      'Pesquisa cancelada',
+      'AbortError'
+    );
   }
 
-  return (await r.json()).features||[];
+  const encontrados=new Map();
+
+  for(const resultado of resultados) {
+    if(resultado.status!=='fulfilled') continue;
+
+    for(const local of resultado.value) {
+      const coordenadas=
+        local.geometry?.coordinates;
+
+      if(!coordenadas) continue;
+
+      const p=local.properties||{};
+
+      const chave=
+        p.osm_type && p.osm_id
+          ? p.osm_type+':'+p.osm_id
+          : coordenadas.join(',');
+
+      if(!encontrados.has(chave)) {
+        encontrados.set(chave,local);
+      }
+    }
+  }
+
+  if(
+    resultados.every(
+      r=>r.status==='rejected'
+    )
+  ) {
+    throw new Error(
+      'O serviço de pesquisa está indisponível.'
+    );
+  }
+
+  return [...encontrados.values()].slice(0,15);
 }
+
+// AUTOCOMPLETE
 
 for(const type of ['origem','destino']) {
   const el=$(type);
-  const box=$('sug'+(type==='origem'?'Origem':'Destino'));
-  let timer,ctrl,seq=0;
+
+  const box=$(
+    'sug'+
+    (type==='origem'?'Origem':'Destino')
+  );
+
+  let timer;
+  let ctrl;
+  let seq=0;
 
   el.addEventListener('input',()=>{
     state[type]=null;
+
     invalidate();
     markers();
+
     clearTimeout(timer);
     ctrl?.abort();
 
     const current=++seq;
+
     box.hidden=true;
+
     const q=el.value.trim();
 
-    if(q.length<3) return;
+    if(q.length<3) {
+      msg(
+        q.length
+          ? 'Digite pelo menos 3 caracteres.'
+          : 'Digite um local para pesquisar.'
+      );
+      return;
+    }
+
+    msg('Pesquisando lugares...');
 
     timer=setTimeout(async()=>{
       ctrl=new AbortController();
 
       try {
-        const features=await photon(q,ctrl.signal);
+        const features=await photon(
+          q,ctrl.signal
+        );
+
         if(current!==seq) return;
 
         box.replaceChildren();
+
         const seen=new Set();
 
         for(const f of features) {
           const p=normalizeFeature(f);
-          if(!p||seen.has(p.name)) continue;
 
-          seen.add(p.name);
+          if(!p) continue;
 
-          const b=document.createElement('button');
+          const chave=
+            p.lat.toFixed(6)+','+
+            p.lon.toFixed(6);
+
+          if(seen.has(chave)) continue;
+
+          seen.add(chave);
+
+          const b=document.createElement(
+            'button'
+          );
+
           b.type='button';
           b.textContent=p.short;
 
-          const sm=document.createElement('small');
+          const sm=document.createElement(
+            'small'
+          );
+
           sm.textContent=p.name;
+
           b.append(sm);
 
           b.addEventListener('click',()=>{
             setPoint(type,p);
             box.hidden=true;
             el.focus();
+
+            map.setView(
+              [p.lat,p.lon],
+              Math.max(map.getZoom(),12)
+            );
           });
 
           box.append(b);
         }
 
         if(!box.children.length) {
-          const d=document.createElement('div');
+          const d=document.createElement(
+            'div'
+          );
+
           d.style.padding='12px';
+
           d.textContent=
-            'Nenhum local encontrado. Inclua cidade e estado.';
+            'Nenhum local encontrado. '+
+            'Tente incluir cidade e estado.';
+
           box.append(d);
+
+          msg('Nenhum local encontrado.');
+        } else {
+          msg(
+            box.children.length+
+            ' local(is) encontrado(s). '+
+            'Selecione uma sugestão.'
+          );
         }
 
         box.hidden=false;
+
       } catch(e) {
-        if(e.name!=='AbortError') msg(e.message);
+        if(
+          e.name!=='AbortError' &&
+          current===seq
+        ) {
+          msg(e.message);
+        }
       }
     },750);
   });
 
   el.addEventListener('keydown',e=>{
-    if(e.key==='Escape') hide(type);
+    if(e.key==='Escape') {
+      hide(type);
+    }
 
-    if(e.key==='Enter'&&!box.hidden) {
+    if(
+      e.key==='Enter' &&
+      !box.hidden
+    ) {
       const b=box.querySelector('button');
+
       if(b) {
         e.preventDefault();
         b.click();
@@ -445,6 +799,8 @@ for(const type of ['origem','destino']) {
     setTimeout(()=>hide(type),180);
   });
 }
+
+// INVERTER ORIGEM E DESTINO
 
 $('inverter').onclick=()=>{
   const a=state.origem;
@@ -458,8 +814,11 @@ $('inverter').onclick=()=>{
 
   invalidate();
   markers();
+
   msg('Origem e destino invertidos.');
 };
+
+// LOCALIZAÇÃO ATUAL
 
 $('localizar').onclick=()=>{
   if(!navigator.geolocation) {
@@ -468,7 +827,9 @@ $('localizar').onclick=()=>{
   }
 
   if(!window.isSecureContext) {
-    msg('A localização exige HTTPS ou localhost.');
+    msg(
+      'A localização exige HTTPS ou localhost.'
+    );
     return;
   }
 
@@ -483,13 +844,19 @@ $('localizar').onclick=()=>{
       };
 
       setPoint('origem',p);
-      map.setView([p.lat,p.lon],14);
+
+      map.setView(
+        [p.lat,p.lon],
+        14
+      );
     },
+
     e=>msg(
       e.code===1
         ? 'Permissão de localização negada.'
         : 'Não foi possível obter a localização.'
     ),
+
     {
       enableHighAccuracy:true,
       timeout:15000,
@@ -498,26 +865,41 @@ $('localizar').onclick=()=>{
   );
 };
 
+// SELEÇÃO DE PONTOS NO MAPA
+
 $('modoOrigem').onclick=()=>{
   state.modoMapa='origem';
-  msg('Clique no mapa para marcar a origem.');
+
+  msg(
+    'Clique no mapa para marcar a origem.'
+  );
 };
 
 $('modoDestino').onclick=()=>{
   state.modoMapa='destino';
-  msg('Clique no mapa para marcar o destino.');
+
+  msg(
+    'Clique no mapa para marcar o destino.'
+  );
 };
 
 map.on('click',e=>{
   setPoint(state.modoMapa,{
     lat:e.latlng.lat,
     lon:e.latlng.lng,
-    name:`Ponto no mapa (${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)})`
+    name:
+      'Ponto no mapa ('+
+      e.latlng.lat.toFixed(5)+', '+
+      e.latlng.lng.toFixed(5)+')'
   });
 
   state.modoMapa=
-    state.modoMapa==='origem'?'destino':'origem';
+    state.modoMapa==='origem'
+      ? 'destino'
+      : 'origem';
 });
+
+// ENQUADRAMENTO
 
 function bounds() {
   const layers=[
@@ -527,26 +909,38 @@ function bounds() {
 
   if(layers.length) {
     const g=L.featureGroup(layers);
-    map.fitBounds(g.getBounds().pad(.15),{maxZoom:15});
+
+    map.fitBounds(
+      g.getBounds().pad(.15),
+      {maxZoom:15}
+    );
   }
 }
 
 $('ajustar').onclick=bounds;
+
+// DESENHAR ROTAS
 
 function draw() {
   routeLayer.clearLayers();
   drawn=[];
 
   state.rotas.forEach((r,i)=>{
-    const coords=r.geometry.coordinates.map(c=>[c[1],c[0]]);
+    const coords=
+      r.geometry.coordinates.map(
+        c=>[c[1],c[0]]
+      );
 
     const line=L.polyline(coords,{
       color:colors[i%colors.length],
-      weight:i===state.selecionada?7:4,
-      opacity:i===state.selecionada?1:.65
+      weight:
+        i===state.selecionada?7:4,
+      opacity:
+        i===state.selecionada?1:.65
     }).addTo(routeLayer);
 
     line.on('click',()=>select(i));
+
     drawn.push(line);
   });
 
@@ -555,46 +949,85 @@ function draw() {
 
 function select(i) {
   state.selecionada=i;
+
   draw();
   render();
-  map.fitBounds(drawn[i].getBounds().pad(.12),{maxZoom:15});
+
+  map.fitBounds(
+    drawn[i].getBounds().pad(.12),
+    {maxZoom:15}
+  );
+
   msg('Rota '+(i+1)+' selecionada.');
 }
+
+// LINK COMPARTILHÁVEL
 
 function link() {
   const u=new URL(location.href);
   u.search='';
 
   u.searchParams.set(
-    'o',state.origem.lon+','+state.origem.lat
+    'o',
+    state.origem.lon+','+
+    state.origem.lat
   );
+
   u.searchParams.set(
-    'd',state.destino.lon+','+state.destino.lat
+    'd',
+    state.destino.lon+','+
+    state.destino.lat
   );
-  u.searchParams.set('r',state.selecionada);
+
+  u.searchParams.set(
+    'r',
+    state.selecionada
+  );
 
   return u.toString();
 }
 
+// ABRIR GOOGLE MAPS
+
 function googleLink(r) {
-  const u=new URL('https://www.google.com/maps/dir/');
+  const u=new URL(
+    'https://www.google.com/maps/dir/'
+  );
 
   u.searchParams.set('api','1');
-  u.searchParams.set(
-    'origin',state.origem.lat+','+state.origem.lon
-  );
-  u.searchParams.set(
-    'destination',state.destino.lat+','+state.destino.lon
-  );
-  u.searchParams.set('travelmode','driving');
 
-  if(state.selecionada>0&&r.geometry.coordinates.length>10) {
+  u.searchParams.set(
+    'origin',
+    state.origem.lat+','+
+    state.origem.lon
+  );
+
+  u.searchParams.set(
+    'destination',
+    state.destino.lat+','+
+    state.destino.lon
+  );
+
+  u.searchParams.set(
+    'travelmode',
+    'driving'
+  );
+
+  if(
+    state.selecionada>0 &&
+    r.geometry.coordinates.length>10
+  ) {
     const c=r.geometry.coordinates;
 
     u.searchParams.set(
       'waypoints',
       [.25,.5,.75].map(f=>{
-        const p=c[Math.floor((c.length-1)*f)];
+        const p=c[
+          Math.floor(
+            (c.length-1)*f
+          )
+        ];
+
         return p[1]+','+p[0];
       }).join('|')
     );
@@ -603,87 +1036,164 @@ function googleLink(r) {
   return u.toString();
 }
 
+// RESULTADOS DAS ROTAS
+
 function render() {
   const list=$('lista');
+
   list.replaceChildren();
 
   $('contagem').textContent=
-    state.rotas.length+' rota'+
+    state.rotas.length+
+    ' rota'+
     (state.rotas.length===1?'':'s');
 
   state.rotas.forEach((r,i)=>{
     const card=document.createElement('div');
-    const b=document.createElement('button');
 
-    b.className='route'+
-      (i===state.selecionada?' active':'');
+    const b=document.createElement(
+      'button'
+    );
+
+    b.className=
+      'route'+
+      (
+        i===state.selecionada
+          ? ' active'
+          : ''
+      );
+
     b.type='button';
 
-    const dot=document.createElement('span');
+    const dot=document.createElement(
+      'span'
+    );
+
     dot.className='dot';
-    dot.style.background=colors[i%colors.length];
+
+    dot.style.background=
+      colors[i%colors.length];
 
     b.append(
       dot,
       document.createTextNode(
-        i===0?'Rota principal':'Alternativa '+i
+        i===0
+          ? 'Rota principal'
+          : 'Alternativa '+i
       )
     );
 
-    const sm=document.createElement('small');
-    sm.textContent=fmtKm(r.distance)+' • '+fmtTime(r.duration);
+    const sm=document.createElement(
+      'small'
+    );
+
+    sm.textContent=
+      fmtKm(r.distance)+
+      ' • '+
+      fmtTime(r.duration);
+
     b.append(sm);
 
     b.onclick=()=>select(i);
+
     card.append(b);
 
     if(i===state.selecionada) {
-      const tools=document.createElement('div');
+      const tools=document.createElement(
+        'div'
+      );
+
       tools.className='route-tools';
 
       const actions=[
-        ['Copiar link',async()=>{
-          try {
-            await navigator.clipboard.writeText(link());
-            msg('Link copiado. A rota será recalculada ao abrir.');
-          } catch {
-            msg('Não foi possível copiar o link.');
-          }
-        }],
-        ['WhatsApp',()=>{
-          const text=
-            'SECURWAY — rota '+(i+1)+
-            ' ('+fmtKm(r.distance)+') '+link();
+        [
+          'Copiar link',
+          async()=>{
+            try {
+              await navigator.clipboard.writeText(
+                link()
+              );
 
-          window.open(
-            'https://wa.me/?text='+encodeURIComponent(text),
-            '_blank','noopener,noreferrer'
-          );
-        }],
-        ['Google Maps',()=>{
-          window.open(
-            googleLink(r),
-            '_blank','noopener,noreferrer'
-          );
-          msg('Google Maps recalculará o caminho; pode ser diferente.');
-        }],
-        ['Waze',()=>{
-          window.open(
-            'https://waze.com/ul?'+new URLSearchParams({
-              ll:state.destino.lat+','+state.destino.lon,
-              navigate:'yes'
-            }),
-            '_blank','noopener,noreferrer'
-          );
-          msg('Waze calculará sua própria rota até o destino.');
-        }]
+              msg(
+                'Link copiado. '+
+                'A rota será recalculada ao abrir.'
+              );
+            } catch {
+              msg(
+                'Não foi possível copiar o link.'
+              );
+            }
+          }
+        ],
+
+        [
+          'WhatsApp',
+          ()=>{
+            const text=
+              'SECURWAY — rota '+
+              (i+1)+
+              ' ('+
+              fmtKm(r.distance)+
+              ') '+
+              link();
+
+            window.open(
+              'https://wa.me/?text='+
+              encodeURIComponent(text),
+              '_blank',
+              'noopener,noreferrer'
+            );
+          }
+        ],
+
+        [
+          'Google Maps',
+          ()=>{
+            window.open(
+              googleLink(r),
+              '_blank',
+              'noopener,noreferrer'
+            );
+
+            msg(
+              'Google Maps recalculará o caminho; '+
+              'pode ser diferente.'
+            );
+          }
+        ],
+
+        [
+          'Waze',
+          ()=>{
+            window.open(
+              'https://waze.com/ul?'+
+              new URLSearchParams({
+                ll:
+                  state.destino.lat+','+
+                  state.destino.lon,
+                navigate:'yes'
+              }),
+              '_blank',
+              'noopener,noreferrer'
+            );
+
+            msg(
+              'Waze calculará sua própria rota '+
+              'até o destino.'
+            );
+          }
+        ]
       ];
 
       for(const [name,fn] of actions) {
-        const x=document.createElement('button');
+        const x=document.createElement(
+          'button'
+        );
+
         x.className='btn small';
         x.textContent=name;
         x.onclick=fn;
+
         tools.append(x);
       }
 
@@ -694,44 +1204,68 @@ function render() {
   });
 }
 
+// CÁLCULO DE ROTAS
+
 async function route() {
-  if(!state.origem||!state.destino) {
-    msg('Selecione origem e destino nas sugestões ou no mapa.');
+  if(
+    !state.origem ||
+    !state.destino
+  ) {
+    msg(
+      'Selecione origem e destino '+
+      'nas sugestões ou no mapa.'
+    );
     return;
   }
 
   const id=++state.request;
+
   const btn=$('buscar');
+
   btn.disabled=true;
+
   msg('Calculando alternativas…');
 
   const o=state.origem;
   const d=state.destino;
 
   const u=
-    `https://router.project-osrm.org/route/v1/driving/`+
-    `${o.lon},${o.lat};${d.lon},${d.lat}`+
-    `?overview=full&geometries=geojson&alternatives=true&steps=false`;
+    'https://router.project-osrm.org/route/v1/driving/'+
+    o.lon+','+o.lat+';'+
+    d.lon+','+d.lat+
+    '?overview=full'+
+    '&geometries=geojson'+
+    '&alternatives=true'+
+    '&steps=false';
 
   try {
     const res=await fetch(u);
 
     if(!res.ok) {
       throw Error(
-        'Serviço de rotas indisponível ('+res.status+').'
+        'Serviço de rotas indisponível ('+
+        res.status+
+        ').'
       );
     }
 
     const data=await res.json();
+
     if(id!==state.request) return;
 
-    if(data.code!=='Ok'||!data.routes?.length) {
-      throw Error('Nenhuma rota encontrada para esses pontos.');
+    if(
+      data.code!=='Ok' ||
+      !data.routes?.length
+    ) {
+      throw Error(
+        'Nenhuma rota encontrada para esses pontos.'
+      );
     }
 
     state.rotas=data.routes.filter(
       r=>r.geometry?.coordinates?.length
     );
+
     state.selecionada=0;
 
     draw();
@@ -740,12 +1274,18 @@ async function route() {
 
     msg(
       state.rotas.length+
-      ' rota(s) retornada(s). O serviço pode oferecer poucas '+
-      'alternativas; isso não significa que não existam outros caminhos.'
+      ' rota(s) retornada(s). '+
+      'O serviço pode oferecer poucas alternativas; '+
+      'isso não significa que não existam outros caminhos.'
     );
+
   } catch(e) {
     if(id===state.request) {
-      msg('Falha no cálculo: '+e.message);
+      msg(
+        'Falha no cálculo: '+
+        e.message
+      );
+
       console.error(e);
     }
   } finally {
@@ -755,21 +1295,33 @@ async function route() {
 
 $('buscar').onclick=route;
 
+// RECUPERAR ORIGEM E DESTINO COMPARTILHADOS
+
 (function restore(){
-  const p=new URLSearchParams(location.search);
+  const p=new URLSearchParams(
+    location.search
+  );
 
   const parse=s=>{
     if(!s) return null;
 
-    const [lon,lat]=s.split(',').map(Number);
+    const [lon,lat]=s.split(',').map(
+      Number
+    );
 
-    return Number.isFinite(lon)&&
-      Number.isFinite(lat)&&
-      Math.abs(lat)<=90&&
+    return (
+      Number.isFinite(lon) &&
+      Number.isFinite(lat) &&
+      Math.abs(lat)<=90 &&
       Math.abs(lon)<=180
+    )
       ? {
-          lon,lat,
-          name:`Local compartilhado (${lat.toFixed(5)}, ${lon.toFixed(5)})`
+          lon,
+          lat,
+          name:
+            'Local compartilhado ('+
+            lat.toFixed(5)+', '+
+            lon.toFixed(5)+')'
         }
       : null;
   };
@@ -780,8 +1332,10 @@ $('buscar').onclick=route;
   if(o&&d) {
     state.origem=o;
     state.destino=d;
+
     $('origem').value=o.name;
     $('destino').value=d.name;
+
     markers();
 
     msg(
@@ -791,5 +1345,6 @@ $('buscar').onclick=route;
   }
 })();
 </script>
+
 </body>
 </html>
