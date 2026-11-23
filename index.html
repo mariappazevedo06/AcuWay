@@ -877,14 +877,15 @@ function distanciaMetros(a, b) {
 
 // GOOGLE MAPS: PONTOS DISTRIBUÍDOS PELA DISTÂNCIA
 
-function selecionarPontosPassagem(rota, quantidade = 9) {
+
+function selecionarPontosPassagem(rota, limite = 9) {
   const coords = rota.geometry?.coordinates || [];
 
-  if (coords.length < 3 || quantidade < 1) {
+  if (coords.length < 3 || limite < 1) {
     return [];
   }
 
-  const rad = graus => graus * Math.PI / 180;
+  const rad = n => n * Math.PI / 180;
 
   function distancia(a, b) {
     return distanciaMetros(
@@ -893,16 +894,199 @@ function selecionarPontosPassagem(rota, quantidade = 9) {
     );
   }
 
-  function angulo(a, b) {
+  const acumulada = [0];
+
+  for (let i = 1; i < coords.length; i++) {
+    acumulada[i] =
+      acumulada[i - 1] +
+      distancia(coords[i - 1], coords[i]);
+  }
+
+  const total = acumulada[acumulada.length - 1];
+
+  if (total < 1000) return [];
+
+  function indiceNaDistancia(alvo) {
+    let inicio = 0;
+    let fim = acumulada.length - 1;
+
+    while (inicio < fim) {
+      const meio = Math.floor((inicio + fim) / 2);
+
+      if (acumulada[meio] < alvo) {
+        inicio = meio + 1;
+      } else {
+        fim = meio;
+      }
+    }
+
+    return inicio;
+  }
+
+  function direcao(a, b) {
     const latitudeMedia = rad((a[1] + b[1]) / 2);
 
-    const dx =
-      (b[0] - a[0]) * Math.cos(latitudeMedia);
-
-    const dy = b[1] - a[1];
-
-    return Math.atan2(dy, dx);
+    return Math.atan2(
+      b[1] - a[1],
+      (b[0] - a[0]) * Math.cos(latitudeMedia)
+    );
   }
+
+  function diferencaAngular(a, b) {
+    return Math.abs(
+      Math.atan2(
+        Math.sin(a - b),
+        Math.cos(a - b)
+      )
+    ) * 180 / Math.PI;
+  }
+
+  // Usa menos pontos em percursos curtos.
+  // Em trajetos longos, aumenta gradualmente.
+  const quantidade = Math.min(
+    limite,
+    Math.max(0, Math.ceil(total / 12000) - 1)
+  );
+
+  if (!quantidade) return [];
+
+  const escolhidos = [];
+
+  // Janela de análise para identificar
+  // segmentos relativamente retos.
+  const janela = Math.min(
+    350,
+    Math.max(80, total / 100)
+  );
+
+  // Margem para evitar pontos muito
+  // próximos da origem ou destino.
+  const margem = Math.min(
+    1000,
+    total * 0.08
+  );
+
+  const intervalo = total / (quantidade + 1);
+
+  for (let n = 1; n <= quantidade; n++) {
+    const alvo = intervalo * n;
+
+    let melhor = null;
+    let menorPontuacao = Infinity;
+
+    // Busca um trecho estável próximo
+    // da posição desejada.
+    const alcance = Math.min(
+      1800,
+      intervalo * 0.35
+    );
+
+    const passo = Math.max(
+      30,
+      Math.min(100, alcance / 12)
+    );
+
+    for (
+      let deslocamento = -alcance;
+      deslocamento <= alcance;
+      deslocamento += passo
+    ) {
+      const pos = alvo + deslocamento;
+
+      if (
+        pos <= margem ||
+        pos >= total - margem
+      ) {
+        continue;
+      }
+
+      const i = indiceNaDistancia(pos);
+
+      if (i <= 0 || i >= coords.length - 1) {
+        continue;
+      }
+
+      const antes = indiceNaDistancia(
+        Math.max(0, pos - janela)
+      );
+
+      const depois = indiceNaDistancia(
+        Math.min(total, pos + janela)
+      );
+
+      if (antes >= i || depois <= i) {
+        continue;
+      }
+
+      const entrada = direcao(
+        coords[antes],
+        coords[i]
+      );
+
+      const saida = direcao(
+        coords[i],
+        coords[depois]
+      );
+
+      const curva = diferencaAngular(
+        entrada,
+        saida
+      );
+
+      // Compara o comprimento do trecho
+      // com a distância direta.
+      const comprimento =
+        acumulada[depois] - acumulada[antes];
+
+      const direto = distancia(
+        coords[antes],
+        coords[depois]
+      );
+
+      const fatorDesvio =
+        comprimento / Math.max(direto, 1);
+
+      // Rejeita curvas fortes, retornos
+      // e trechos muito sinuosos.
+      if (curva > 20 || fatorDesvio > 1.12) {
+        continue;
+      }
+
+      const muitoProximo = escolhidos.some(
+        p => Math.abs(p.pos - pos) <
+          Math.min(700, intervalo * 0.4)
+      );
+
+      if (muitoProximo) continue;
+
+      const pontuacao =
+        curva * 4 +
+        Math.max(0, fatorDesvio - 1) * 500 +
+        Math.abs(deslocamento) / 100;
+
+      if (pontuacao < menorPontuacao) {
+        menorPontuacao = pontuacao;
+        melhor = {
+          indice: i,
+          pos
+        };
+      }
+    }
+
+    // Não força pontos quando não
+    // encontra um trecho adequado.
+    if (melhor) {
+      escolhidos.push(melhor);
+    }
+  }
+
+  escolhidos.sort((a, b) => a.pos - b.pos);
+
+  return escolhidos.map(p => ({
+    lat: coords[p.indice][1],
+    lon: coords[p.indice][0]
+  }));
+}
 
   function diferencaAngular(a, b) {
     return Math.abs(
@@ -1077,6 +1261,7 @@ function selecionarPontosPassagem(rota, quantidade = 9) {
 }
 
 
+
 function googleLink(rota) {
   const url = new URL(
     'https://www.google.com/maps/dir/'
@@ -1096,10 +1281,14 @@ function googleLink(rota) {
 
   url.searchParams.set('travelmode', 'driving');
 
-  // Limite conservador para navegadores móveis.
   const navegadorMovel =
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    /Android|iPhone|iPad|iPod/i.test(
+      navigator.userAgent
+    );
 
+  // Limites conservadores.
+  // O Google Maps pode aplicar outros limites
+  // dependendo de onde o link for aberto.
   const limite = navegadorMovel ? 3 : 9;
 
   const pontos = selecionarPontosPassagem(
@@ -1107,7 +1296,7 @@ function googleLink(rota) {
     limite
   );
 
-  if (pontos.length) {
+  if (pontos.length > 0) {
     url.searchParams.set(
       'waypoints',
       pontos.map(p =>
@@ -1117,8 +1306,18 @@ function googleLink(rota) {
     );
   }
 
+  console.log(
+    'SECURWAY | Distância:',
+    fmtKm(rota.distance),
+    '| Pontos enviados:',
+    pontos.length,
+    '| Coordenadas:',
+    pontos
+  );
+
   return url.toString();
 }
+
 
 // IDENTIFICAÇÃO DAS VIAS
 
