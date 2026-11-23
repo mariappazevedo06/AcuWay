@@ -447,7 +447,7 @@ const colors = [
 const ROUTE_CONFIG = {
   maxRotas: 12,
   maxConsultasExtras: 8,
-  desvioMaximo: 1.8,
+  desvioMaximo: 1.4,
   timeout: 12000
 };
 
@@ -877,7 +877,7 @@ function distanciaMetros(a, b) {
 
 // GOOGLE MAPS: SELEÇÃO DE PONTOS
 // Baseada nos trechos retornados pelo OSRM.
-// Evita forçar pontos próximos às manobras.
+// Evita forçar pontos próximos às manobras e em vias sem nome.
 
 function selecionarPontosPassagem(rota, limite = 3) {
   const coordenadas = rota.geometry?.coordinates || [];
@@ -903,14 +903,15 @@ function selecionarPontosPassagem(rota, limite = 3) {
 
   if (!segmentos.length) return [];
 
-  // Seleciona somente segmentos suficientemente longos.
-  // Isso reduz a chance de escolher pontos em cruzamentos.
+  // Seleciona somente segmentos suficientemente longos e com nome identificado.
+  // Isso reduz a chance de escolher pontos em cruzamentos ou estradas vicinais rurais.
   const candidatos = [];
 
   for (let i = 0; i < segmentos.length; i++) {
     const trecho = segmentos[i];
 
     if (trecho.distancia < 2500) continue;
+    if (!trecho.nome || !trecho.nome.trim()) continue;
     if (trecho.coords.length < 3) continue;
 
     const anterior = segmentos[i - 1];
@@ -1151,7 +1152,6 @@ function render() {
             );
           }
         ],
-        
         [
           'WhatsApp',
           'share-2',
@@ -1282,6 +1282,15 @@ async function consultarOSRM(pontos, alternativas = false) {
   url.searchParams.set('alternatives', String(alternativas));
   url.searchParams.set('steps', 'true');
 
+  if (pontos.length > 2) {
+    url.searchParams.set(
+      'radiuses',
+      pontos.map((_, idx) =>
+        (idx === 0 || idx === pontos.length - 1) ? 'unlimited' : '1500'
+      ).join(';')
+    );
+  }
+
   const controller = new AbortController();
 
   const timer = setTimeout(
@@ -1352,12 +1361,43 @@ function diferencaRotas(a, b) {
   return diferentes / amostraA.length;
 }
 
+function rotaTemRetornoOuLaco(rota) {
+  for (const leg of rota.legs || []) {
+    for (const step of leg.steps || []) {
+      const mod = step.maneuver?.modifier || '';
+      const tipo = step.maneuver?.type || '';
+      if (mod === 'uturn' && tipo !== 'depart' && tipo !== 'arrive') {
+        return true;
+      }
+    }
+  }
+
+  const coords = rota.geometry.coordinates;
+  const passo = Math.max(1, Math.floor(coords.length / 60));
+
+  for (let i = 0; i < coords.length; i += passo) {
+    for (let j = i + passo * 4; j < coords.length; j += passo) {
+      const dist = distanciaMetros(
+        { lat: coords[i][1], lon: coords[i][0] },
+        { lat: coords[j][1], lon: coords[j][0] }
+      );
+      if (dist < 60) return true;
+    }
+  }
+
+  return false;
+}
+
 function adicionarRotaUnica(
   lista,
   candidata,
   distanciaPrincipal
 ) {
   if (!candidata?.geometry?.coordinates) {
+    return false;
+  }
+
+  if (rotaTemRetornoOuLaco(candidata)) {
     return false;
   }
 
