@@ -565,84 +565,29 @@ function hide(type) {
 
 // PESQUISA MELHORADA: LOCAL + GERAL
 
-async function photon(q,signal) {
-  const consultas=[];
 
-  const local=new URL(
-    'https://photon.komoot.io/api/'
-  );
+async function photon(q, signal) {
+  const url = new URL("https://photon.komoot.io/api/");
 
-  local.searchParams.set('q',q);
-  local.searchParams.set('limit','10');
-  local.searchParams.set('lat','-21.78');
-  local.searchParams.set('lon','-41.05');
+  url.searchParams.set("q", q);
+  url.searchParams.set("limit", "10");
 
-  const geral=new URL(
-    'https://photon.komoot.io/api/'
-  );
+  // Prioriza a região exibida no mapa.
+  const centro = map.getCenter();
+  url.searchParams.set("lat", centro.lat);
+  url.searchParams.set("lon", centro.lng);
 
-  geral.searchParams.set('q',q);
-  geral.searchParams.set('limit','10');
+  const resposta = await fetch(url, { signal });
 
-  consultas.push(local,geral);
-
-  const resultados=await Promise.allSettled(
-    consultas.map(async url=>{
-      const resposta=await fetch(url,{signal});
-
-      if(!resposta.ok) {
-        throw new Error(
-          'Erro na pesquisa: '+resposta.status
-        );
-      }
-
-      const dados=await resposta.json();
-      return dados.features||[];
-    })
-  );
-
-  if(signal.aborted) {
-    throw new DOMException(
-      'Pesquisa cancelada',
-      'AbortError'
-    );
-  }
-
-  const encontrados=new Map();
-
-  for(const resultado of resultados) {
-    if(resultado.status!=='fulfilled') continue;
-
-    for(const local of resultado.value) {
-      const coordenadas=
-        local.geometry?.coordinates;
-
-      if(!coordenadas) continue;
-
-      const p=local.properties||{};
-
-      const chave=
-        p.osm_type && p.osm_id
-          ? p.osm_type+':'+p.osm_id
-          : coordenadas.join(',');
-
-      if(!encontrados.has(chave)) {
-        encontrados.set(chave,local);
-      }
-    }
-  }
-
-  if(
-    resultados.every(
-      r=>r.status==='rejected'
-    )
-  ) {
+  if (!resposta.ok) {
     throw new Error(
-      'O serviço de pesquisa está indisponível.'
+      "Pesquisa indisponível (HTTP " +
+      resposta.status + ")."
     );
   }
 
-  return [...encontrados.values()].slice(0,15);
+  const dados = await resposta.json();
+  return dados.features || [];
 }
 
 // AUTOCOMPLETE
