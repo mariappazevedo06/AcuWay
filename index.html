@@ -981,7 +981,29 @@ function googleLink(r) {
 }
 
 // RESULTADOS DAS ROTAS
+function identificarVias(rota) {
+  const vias = [];
+  const nomes = new Set();
 
+  for (const trecho of rota.legs || []) {
+    for (const etapa of trecho.steps || []) {
+      const nome = etapa.name?.trim();
+
+      if (!nome) continue;
+
+      const chave = nome.toLowerCase();
+
+      if (!nomes.has(chave)) {
+        nomes.add(chave);
+        vias.push(nome);
+      }
+    }
+  }
+
+  return vias;
+}
+
+  
 function render() {
   const list=$('lista');
 
@@ -1036,9 +1058,24 @@ function render() {
       ' • '+
       fmtTime(r.duration);
 
-    b.append(sm);
+  b.append(sm);
 
-    b.onclick=()=>select(i);
+const vias = identificarVias(r);
+
+if (vias.length > 0) {
+  const detalhes = document.createElement('small');
+
+  detalhes.textContent =
+    'Principais vias: ' +
+    vias.slice(0, 5).join(' • ');
+
+  detalhes.style.marginTop = '8px';
+  detalhes.style.lineHeight = '1.5';
+
+  b.append(detalhes);
+}
+
+b.onclick=()=>select(i);
 
     card.append(b);
 
@@ -1275,10 +1312,10 @@ async function consultarOSRM(
     String(alternativas)
   );
 
-  url.searchParams.set(
-    'steps',
-    'false'
-  );
+ url.searchParams.set(
+  'steps',
+  'true'
+);
 
   const controller = new AbortController();
 
