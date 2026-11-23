@@ -1,289 +1,299 @@
-<!DOCTYPE HTML>
+
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0f14">
 <title>SECURWAY</title>
 
-<link rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
 <style>
 :root {
-  color-scheme:dark;
-  --bg:#0b0f14;
-  --panel:#161d25;
-  --field:#101820;
-  --line:#354454;
-  --text:#f1f5f9;
-  --muted:#acbac8;
-  --accent:#8ab4d8;
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --panel: #161d25;
+  --field: #101820;
+  --line: #354454;
+  --text: #f1f5f9;
+  --muted: #acbac8;
+  --accent: #8ab4d8;
 }
 
-* { box-sizing:border-box; }
+* { box-sizing: border-box; }
 
 body {
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font:15px system-ui,Arial,sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px system-ui, Arial, sans-serif;
 }
 
-button,input { font:inherit; }
-button { cursor:pointer; }
-button:disabled { opacity:.5;cursor:wait; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: wait; }
 
-button:focus-visible,input:focus-visible {
-  outline:2px solid var(--accent);
-  outline-offset:2px;
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .shell {
-  max-width:1120px;
-  margin:auto;
-  padding:16px;
+  max-width: 1120px;
+  margin: auto;
+  padding: 16px;
 }
 
 .head {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding:8px 0 18px;
+  display: flex;
+  align-items: center;
+  padding: 8px 0 18px;
 }
 
 .brand {
-  font-size:25px;
-  letter-spacing:2px;
-  font-weight:800;
+  font-size: 25px;
+  letter-spacing: 2px;
+  font-weight: 800;
 }
 
 .subtitle {
-  font-size:12px;
-  color:var(--muted);
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .layout {
-  display:grid;
-  grid-template-columns:minmax(310px,390px) minmax(0,1fr);
-  gap:16px;
-  align-items:start;
+  display: grid;
+  grid-template-columns: minmax(310px,390px) minmax(0,1fr);
+  gap: 16px;
+  align-items: start;
 }
 
 .panel {
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
 }
 
 h2 {
-  font-size:17px;
-  margin:0 0 14px;
+  font-size: 17px;
+  margin: 0 0 14px;
 }
 
 .field {
-  position:relative;
-  margin-bottom:13px;
+  position: relative;
+  margin-bottom: 13px;
 }
 
 .field label {
-  display:block;
-  font-size:12px;
-  color:var(--muted);
-  margin-bottom:6px;
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
 }
 
 .field input {
-  width:100%;
-  border:1px solid var(--line);
-  border-radius:10px;
-  background:var(--field);
-  color:var(--text);
-  padding:13px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--field);
+  color: var(--text);
+  padding: 13px;
 }
 
-.actions {
-  display:flex;
-  flex-wrap:wrap;
-  gap:8px;
+.actions, .route-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .btn {
-  background:#26394b;
-  border:1px solid #526b82;
-  border-radius:10px;
-  color:var(--text);
-  padding:11px 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #26394b;
+  border: 1px solid #526b82;
+  border-radius: 10px;
+  color: var(--text);
+  padding: 11px 13px;
+  transition: background .2s, transform .2s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #344f66;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(.98);
 }
 
 .btn.primary {
-  background:#547c9c;
-  border-color:#729aba;
-  color:white;
-  font-weight:700;
-  flex:1;
+  background: #547c9c;
+  border-color: #729aba;
+  color: white;
+  font-weight: 700;
+  flex: 1;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #648eaf;
 }
 
 .btn.small {
-  padding:8px 10px;
-  font-size:12px;
+  padding: 9px 11px;
+  font-size: 12px;
+}
+
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  stroke-width: 2;
 }
 
 .suggest {
-  position:absolute;
-  z-index:1000;
-  top:100%;
-  left:0;
-  right:0;
-  background:#202d39;
-  border:1px solid #526b82;
-  border-radius:10px;
-  max-height:260px;
-  overflow:auto;
-  box-shadow:0 10px 20px #0008;
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #202d39;
+  border: 1px solid #526b82;
+  border-radius: 10px;
+  max-height: 260px;
+  overflow: auto;
+  box-shadow: 0 10px 20px #0008;
 }
 
-.suggest[hidden] {
-  display:none;
-}
+.suggest[hidden] { display: none; }
 
 .suggest button {
-  display:block;
-  text-align:left;
-  width:100%;
-  padding:11px;
-  border:0;
-  border-bottom:1px solid var(--line);
-  background:transparent;
-  color:white;
+  display: block;
+  text-align: left;
+  width: 100%;
+  padding: 11px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: white;
 }
 
 .suggest button:hover,
 .suggest button:focus {
-  background:#334b60;
+  background: #334b60;
 }
 
 .suggest small {
-  display:block;
-  color:var(--muted);
-  margin-top:4px;
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .status {
-  min-height:25px;
-  font-size:13px;
-  color:var(--muted);
-  line-height:1.5;
+  min-height: 25px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .route {
-  width:100%;
-  text-align:left;
-  background:#111b25;
-  color:white;
-  border:1px solid var(--line);
-  border-radius:10px;
-  padding:12px;
-  margin-bottom:9px;
+  width: 100%;
+  text-align: left;
+  background: #111b25;
+  color: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 9px;
 }
 
 .route.active {
-  border:2px solid var(--accent);
-  background:#203246;
+  border: 2px solid var(--accent);
+  background: #203246;
 }
 
 .route small {
-  display:block;
-  color:var(--muted);
-  margin-top:5px;
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.5;
 }
 
-.route-tools {
-  display:flex;
-  gap:7px;
-  flex-wrap:wrap;
-  margin:0 0 14px;
+.route-tools { margin-bottom: 14px; }
+
+.route-tools .btn {
+  min-height: 38px;
 }
 
-.empty {
-  color:var(--muted);
-  font-size:13px;
+.route-tools .navigate {
+  background: #547c9c;
+  border-color: #729aba;
+  font-weight: 700;
 }
 
-.map-panel {
-  padding:10px;
+.empty, .notice {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
+
+.notice { font-size: 12px; }
+
+.map-panel { padding: 10px; }
 
 .map-header {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 6px 12px;
 }
 
 #map {
-  height:min(75vh,720px);
-  min-height:430px;
-  border-radius:12px;
-  background:#25313d;
+  height: min(75vh,720px);
+  min-height: 430px;
+  border-radius: 12px;
+  background: #25313d;
 }
 
-.leaflet-container {
-  font:inherit;
-}
+.leaflet-container { font: inherit; }
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background:#1b2835;
-  color:white;
+  background: #1b2835;
+  color: white;
 }
 
 .foot {
-  font-size:11px;
-  color:var(--muted);
-  line-height:1.6;
-  margin-top:16px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 16px;
 }
 
 .badge {
-  font-size:12px;
-  background:#26394b;
-  padding:5px 9px;
-  border-radius:20px;
+  font-size: 12px;
+  background: #26394b;
+  padding: 5px 9px;
+  border-radius: 20px;
 }
 
 .dot {
-  display:inline-block;
-  width:11px;
-  height:11px;
-  border-radius:50%;
-  margin-right:7px;
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  margin-right: 7px;
 }
 
-.notice {
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.5;
-}
-
-a { color:#a8d3ff; }
+a { color: #a8d3ff; }
 
 @media(max-width:760px) {
-  .layout {
-    grid-template-columns:1fr;
-  }
-
-  .shell {
-    padding:12px;
-  }
-
-  #map {
-    height:440px;
-    min-height:360px;
-  }
+  .layout { grid-template-columns: 1fr; }
+  .shell { padding: 12px; }
+  #map { height: 440px; min-height: 360px; }
 }
 </style>
 </head>
@@ -301,7 +311,6 @@ a { color:#a8d3ff; }
 </header>
 
 <div class="layout">
-
 <div>
 
 <section class="panel">
@@ -309,46 +318,42 @@ a { color:#a8d3ff; }
 
   <div class="field">
     <label for="origem">Origem</label>
-    <input
-      id="origem"
-      autocomplete="off"
+    <input id="origem" autocomplete="off"
       placeholder="Pesquise um local ou use sua posição"
-      aria-autocomplete="list"
-    >
+      aria-autocomplete="list">
     <div class="suggest" id="sugOrigem" hidden></div>
   </div>
 
   <div class="field">
     <label for="destino">Destino</label>
-    <input
-      id="destino"
-      autocomplete="off"
+    <input id="destino" autocomplete="off"
       placeholder="Cidade, rua ou estabelecimento"
-      aria-autocomplete="list"
-    >
+      aria-autocomplete="list">
     <div class="suggest" id="sugDestino" hidden></div>
   </div>
 
   <div class="actions" style="margin-bottom:10px">
     <button class="btn" id="localizar">
+      <i data-lucide="locate-fixed"></i>
       Minha localização
     </button>
 
     <button class="btn" id="inverter">
+      <i data-lucide="arrow-left-right"></i>
       Inverter
     </button>
   </div>
 
   <div class="actions">
     <button class="btn primary" id="buscar">
+      <i data-lucide="route"></i>
       Buscar rotas
     </button>
   </div>
 
   <p class="status" id="status"
-     role="status" aria-live="polite">
-    Selecione os locais nas sugestões ou clique no mapa
-    para definir um ponto.
+    role="status" aria-live="polite">
+    Selecione os locais nas sugestões ou clique no mapa.
   </p>
 </section>
 
@@ -365,13 +370,11 @@ a { color:#a8d3ff; }
   </div>
 
   <p class="notice">
-    As alternativas dependem do serviço de roteamento.
-    Não são todas as combinações possíveis.
-    Tempos são estimativas, sem trânsito ao vivo.
-    Confira as condições reais das vias.
+    Os tempos não incluem trânsito ao vivo.
+    As rotas são experimentais. Confira as condições
+    das vias antes de viajar.
   </p>
 </section>
-
 </div>
 
 <div>
@@ -379,6 +382,7 @@ a { color:#a8d3ff; }
   <div class="map-header">
     <strong>Mapa interativo</strong>
     <button class="btn small" id="ajustar">
+      <i data-lucide="maximize"></i>
       Enquadrar
     </button>
   </div>
@@ -387,29 +391,31 @@ a { color:#a8d3ff; }
 
   <div class="actions" style="padding:10px 4px 0">
     <button class="btn small" id="modoOrigem">
+      <i data-lucide="map-pin"></i>
       Definir origem no mapa
     </button>
 
     <button class="btn small" id="modoDestino">
+      <i data-lucide="flag"></i>
       Definir destino no mapa
     </button>
   </div>
 </section>
 </div>
-
 </div>
 
 <footer class="foot">
   SECURWAY • Mapa © OpenStreetMap contributors •
-  Busca: Photon (Komoot) • Rotas: OSRM público de demonstração.
-  Serviços gratuitos sujeitos a limites e indisponibilidade.
-  Não indicado para navegação crítica ou implantação
-  corporativa sem infraestrutura adequada.
+  Pesquisa: Photon • Rotas: OSRM público de demonstração.
+  Os serviços podem apresentar limites e indisponibilidade.
+  O Google Maps pode recalcular os trajetos.
+  Protótipo não indicado para navegação crítica.
 </footer>
 
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 
 <script>
 'use strict';
@@ -418,31 +424,41 @@ const $ = id => document.getElementById(id);
 const status = $('status');
 
 const state = {
-  origem:null,
-  destino:null,
-  rotas:[],
-  selecionada:0,
-  modoMapa:'destino',
-  request:0
+  origem: null,
+  destino: null,
+  rotas: [],
+  selecionada: 0,
+  modoMapa: 'destino',
+  request: 0
 };
 
 const colors = [
-  '#70e0ae',
-  '#73baff',
-  '#e8ad62',
-  '#d3a0ed',
-  '#f28f91',
-  '#e2d16d',
+  '#70e0ae', '#73baff', '#e8ad62',
+  '#d3a0ed', '#f28f91', '#e2d16d',
   '#65d2d4'
 ];
 
-const map = L.map('map',{zoomControl:true})
-  .setView([-21.78,-41.05],10);
+const ROUTE_CONFIG = {
+  maxRotas: 12,
+  maxConsultasExtras: 8,
+  desvioMaximo: 1.8,
+  timeout: 12000
+};
+
+function atualizarIcones() {
+  if (window.lucide) {
+    lucide.createIcons();
+  }
+}
+
+const map = L.map('map', {
+  zoomControl: true
+}).setView([-21.78, -41.05], 10);
 
 L.tileLayer(
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
-    maxZoom:19,
+    maxZoom: 19,
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }
@@ -453,46 +469,45 @@ const pointLayer = L.layerGroup().addTo(map);
 
 let drawn = [];
 
-function msg(s) {
-  status.textContent = s;
+function msg(texto) {
+  status.textContent = texto;
 }
 
 function fmtKm(m) {
-  return (m/1000).toLocaleString('pt-BR',{
-    maximumFractionDigits:1,
-    minimumFractionDigits:1
-  })+' km';
+  return (m / 1000).toLocaleString('pt-BR', {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1
+  }) + ' km';
 }
 
 function fmtTime(s) {
-  let m=Math.round(s/60);
-
-  return m<60
-    ? m+' min'
-    : Math.floor(m/60)+' h '+(m%60)+' min';
+  const m = Math.round(s / 60);
+  return m < 60
+    ? m + ' min'
+    : Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
 }
 
 function invalidate() {
   state.request++;
-  state.rotas=[];
-  state.selecionada=0;
+  state.rotas = [];
+  state.selecionada = 0;
   routeLayer.clearLayers();
+  drawn = [];
 
   $('lista').innerHTML =
     '<p class="empty">Busque rotas para visualizar alternativas.</p>';
 
-  $('contagem').textContent='0 rotas';
+  $('contagem').textContent = '0 rotas';
 }
 
-function setPoint(type,point) {
-  state[type]=point;
-  $(type).value=point.name;
-
+function setPoint(type, point) {
+  state[type] = point;
+  $(type).value = point.name;
   invalidate();
   markers();
 
   msg(
-    (type==='origem'?'Origem':'Destino')+
+    (type === 'origem' ? 'Origem' : 'Destino') +
     ' definida.'
   );
 }
@@ -500,43 +515,42 @@ function setPoint(type,point) {
 function markers() {
   pointLayer.clearLayers();
 
-  for(const type of ['origem','destino']) {
-    const p=state[type];
+  for (const type of ['origem', 'destino']) {
+    const p = state[type];
+    if (!p) continue;
 
-    if(!p) continue;
+    const marker = L.circleMarker([p.lat, p.lon], {
+      radius: 9,
+      color: '#fff',
+      weight: 2,
+      fillColor: type === 'origem'
+        ? '#36c58e'
+        : '#e88d67',
+      fillOpacity: 1
+    }).addTo(pointLayer);
 
-    L.circleMarker([p.lat,p.lon],{
-      radius:9,
-      color:'#fff',
-      weight:2,
-      fillColor:
-        type==='origem'?'#36c58e':'#e88d67',
-      fillOpacity:1
-    })
-    .addTo(pointLayer)
-    .bindPopup(
-      (type==='origem'?'Origem: ':'Destino: ')+
-      p.name
-    );
+    const popup = document.createElement('div');
+    popup.textContent =
+      (type === 'origem' ? 'Origem: ' : 'Destino: ') +
+      p.name;
+
+    marker.bindPopup(popup);
   }
 }
 
-// NORMALIZAÇÃO MELHORADA DOS LOCAIS
+// PESQUISA DE LUGARES
 
 function normalizeFeature(f) {
-  const p=f.properties||{};
-  const c=f.geometry?.coordinates;
+  const p = f.properties || {};
+  const c = f.geometry?.coordinates;
 
-  if(!c || c.length<2) return null;
+  if (!c || c.length < 2) return null;
 
   const titulo =
-    p.name ||
-    p.street ||
-    p.city ||
-    p.locality ||
-    'Local encontrado';
+    p.name || p.street || p.city ||
+    p.locality || 'Local encontrado';
 
-  const endereco=[
+  const endereco = [
     p.street,
     p.housenumber,
     p.suburb || p.district,
@@ -545,44 +559,41 @@ function normalizeFeature(f) {
     p.country
   ].filter(Boolean);
 
-  const descricao=[...new Set(endereco)].join(', ');
+  const descricao = [...new Set(endereco)].join(', ');
 
   return {
-    lat:c[1],
-    lon:c[0],
-    name:descricao
-      ? titulo+' — '+descricao
+    lat: c[1],
+    lon: c[0],
+    name: descricao
+      ? titulo + ' — ' + descricao
       : titulo,
-    short:titulo
+    short: titulo
   };
 }
 
 function hide(type) {
-  $('sug'+
-    (type==='origem'?'Origem':'Destino')
-  ).hidden=true;
+  $('sug' + (
+    type === 'origem' ? 'Origem' : 'Destino'
+  )).hidden = true;
 }
 
-// PESQUISA MELHORADA: LOCAL + GERAL
-
-
 async function photon(q, signal) {
-  const url = new URL("https://photon.komoot.io/api/");
+  const url = new URL('https://photon.komoot.io/api/');
 
-  url.searchParams.set("q", q);
-  url.searchParams.set("limit", "10");
+  url.searchParams.set('q', q);
+  url.searchParams.set('limit', '10');
 
-  // Prioriza a região exibida no mapa.
   const centro = map.getCenter();
-  url.searchParams.set("lat", centro.lat);
-  url.searchParams.set("lon", centro.lng);
+
+  url.searchParams.set('lat', centro.lat);
+  url.searchParams.set('lon', centro.lng);
 
   const resposta = await fetch(url, { signal });
 
   if (!resposta.ok) {
     throw new Error(
-      "Pesquisa indisponível (HTTP " +
-      resposta.status + ")."
+      'Pesquisa indisponível (HTTP ' +
+      resposta.status + ').'
     );
   }
 
@@ -590,301 +601,236 @@ async function photon(q, signal) {
   return dados.features || [];
 }
 
-// AUTOCOMPLETE
-
-for(const type of ['origem','destino']) {
-  const el=$(type);
-
-  const box=$(
-    'sug'+
-    (type==='origem'?'Origem':'Destino')
-  );
+for (const type of ['origem', 'destino']) {
+  const el = $(type);
+  const box = $('sug' + (
+    type === 'origem' ? 'Origem' : 'Destino'
+  ));
 
   let timer;
   let ctrl;
-  let seq=0;
+  let seq = 0;
 
-  el.addEventListener('input',()=>{
-    state[type]=null;
-
+  el.addEventListener('input', () => {
+    state[type] = null;
     invalidate();
     markers();
 
     clearTimeout(timer);
     ctrl?.abort();
 
-    const current=++seq;
+    const current = ++seq;
+    box.hidden = true;
+    const q = el.value.trim();
 
-    box.hidden=true;
-
-    const q=el.value.trim();
-
-    if(q.length<3) {
-      msg(
-        q.length
-          ? 'Digite pelo menos 3 caracteres.'
-          : 'Digite um local para pesquisar.'
-      );
+    if (q.length < 3) {
+      msg('Digite pelo menos 3 caracteres.');
       return;
     }
 
     msg('Pesquisando lugares...');
 
-    timer=setTimeout(async()=>{
-      ctrl=new AbortController();
+    timer = setTimeout(async () => {
+      ctrl = new AbortController();
 
       try {
-        const features=await photon(
-          q,ctrl.signal
-        );
-
-        if(current!==seq) return;
+        const features = await photon(q, ctrl.signal);
+        if (current !== seq) return;
 
         box.replaceChildren();
+        const seen = new Set();
 
-        const seen=new Set();
+        for (const f of features) {
+          const p = normalizeFeature(f);
+          if (!p) continue;
 
-        for(const f of features) {
-          const p=normalizeFeature(f);
-
-          if(!p) continue;
-
-          const chave=
-            p.lat.toFixed(6)+','+
+          const chave =
+            p.lat.toFixed(6) + ',' +
             p.lon.toFixed(6);
 
-          if(seen.has(chave)) continue;
-
+          if (seen.has(chave)) continue;
           seen.add(chave);
 
-          const b=document.createElement(
-            'button'
-          );
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = p.short;
 
-          b.type='button';
-          b.textContent=p.short;
-
-          const sm=document.createElement(
-            'small'
-          );
-
-          sm.textContent=p.name;
-
+          const sm = document.createElement('small');
+          sm.textContent = p.name;
           b.append(sm);
 
-          b.addEventListener('click',()=>{
-            setPoint(type,p);
-            box.hidden=true;
+          b.addEventListener('click', () => {
+            setPoint(type, p);
+            box.hidden = true;
             el.focus();
 
             map.setView(
-              [p.lat,p.lon],
-              Math.max(map.getZoom(),12)
+              [p.lat, p.lon],
+              Math.max(map.getZoom(), 12)
             );
           });
 
           box.append(b);
         }
 
-        if(!box.children.length) {
-          const d=document.createElement(
-            'div'
-          );
-
-          d.style.padding='12px';
-
-          d.textContent=
-            'Nenhum local encontrado. '+
-            'Tente incluir cidade e estado.';
-
+        if (!box.children.length) {
+          const d = document.createElement('div');
+          d.style.padding = '12px';
+          d.textContent =
+            'Nenhum local encontrado. Tente incluir cidade e estado.';
           box.append(d);
-
           msg('Nenhum local encontrado.');
         } else {
           msg(
-            box.children.length+
-            ' local(is) encontrado(s). '+
-            'Selecione uma sugestão.'
+            box.children.length +
+            ' local(is) encontrado(s). Selecione uma sugestão.'
           );
         }
 
-        box.hidden=false;
-
-      } catch(e) {
-        if(
-          e.name!=='AbortError' &&
-          current===seq
+        box.hidden = false;
+      } catch (e) {
+        if (
+          e.name !== 'AbortError' &&
+          current === seq
         ) {
           msg(e.message);
         }
       }
-    },750);
+    }, 750);
   });
 
-  el.addEventListener('keydown',e=>{
-    if(e.key==='Escape') {
-      hide(type);
-    }
+  el.addEventListener('keydown', e => {
+    if (e.key === 'Escape') hide(type);
 
-    if(
-      e.key==='Enter' &&
-      !box.hidden
-    ) {
-      const b=box.querySelector('button');
-
-      if(b) {
+    if (e.key === 'Enter' && !box.hidden) {
+      const b = box.querySelector('button');
+      if (b) {
         e.preventDefault();
         b.click();
       }
     }
   });
 
-  el.addEventListener('blur',()=>{
-    setTimeout(()=>hide(type),180);
+  el.addEventListener('blur', () => {
+    setTimeout(() => hide(type), 180);
   });
 }
 
-// INVERTER ORIGEM E DESTINO
+// CONTROLES DO MAPA
 
-$('inverter').onclick=()=>{
-  const a=state.origem;
-  const b=state.destino;
+$('inverter').onclick = () => {
+  const a = state.origem;
+  const b = state.destino;
 
-  state.origem=b;
-  state.destino=a;
+  state.origem = b;
+  state.destino = a;
 
-  $('origem').value=b?.name||'';
-  $('destino').value=a?.name||'';
+  $('origem').value = b?.name || '';
+  $('destino').value = a?.name || '';
 
   invalidate();
   markers();
-
   msg('Origem e destino invertidos.');
 };
 
-// LOCALIZAÇÃO ATUAL
-
-$('localizar').onclick=()=>{
-  if(!navigator.geolocation) {
+$('localizar').onclick = () => {
+  if (!navigator.geolocation) {
     msg('Geolocalização não suportada.');
     return;
   }
 
-  if(!window.isSecureContext) {
-    msg(
-      'A localização exige HTTPS ou localhost.'
-    );
+  if (!window.isSecureContext) {
+    msg('A localização exige HTTPS ou localhost.');
     return;
   }
 
-  msg('Solicitando sua localização…');
+  msg('Solicitando sua localização...');
 
   navigator.geolocation.getCurrentPosition(
-    pos=>{
-      const p={
-        lat:pos.coords.latitude,
-        lon:pos.coords.longitude,
-        name:'Minha localização atual'
+    pos => {
+      const p = {
+        lat: pos.coords.latitude,
+        lon: pos.coords.longitude,
+        name: 'Minha localização atual'
       };
 
-      setPoint('origem',p);
-
-      map.setView(
-        [p.lat,p.lon],
-        14
-      );
+      setPoint('origem', p);
+      map.setView([p.lat, p.lon], 14);
     },
-
-    e=>msg(
-      e.code===1
+    e => msg(
+      e.code === 1
         ? 'Permissão de localização negada.'
         : 'Não foi possível obter a localização.'
     ),
-
     {
-      enableHighAccuracy:true,
-      timeout:15000,
-      maximumAge:30000
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 30000
     }
   );
 };
 
-// SELEÇÃO DE PONTOS NO MAPA
-
-$('modoOrigem').onclick=()=>{
-  state.modoMapa='origem';
-
-  msg(
-    'Clique no mapa para marcar a origem.'
-  );
+$('modoOrigem').onclick = () => {
+  state.modoMapa = 'origem';
+  msg('Clique no mapa para marcar a origem.');
 };
 
-$('modoDestino').onclick=()=>{
-  state.modoMapa='destino';
-
-  msg(
-    'Clique no mapa para marcar o destino.'
-  );
+$('modoDestino').onclick = () => {
+  state.modoMapa = 'destino';
+  msg('Clique no mapa para marcar o destino.');
 };
 
-map.on('click',e=>{
-  setPoint(state.modoMapa,{
-    lat:e.latlng.lat,
-    lon:e.latlng.lng,
+map.on('click', e => {
+  setPoint(state.modoMapa, {
+    lat: e.latlng.lat,
+    lon: e.latlng.lng,
     name:
-      'Ponto no mapa ('+
-      e.latlng.lat.toFixed(5)+', '+
-      e.latlng.lng.toFixed(5)+')'
+      'Ponto no mapa (' +
+      e.latlng.lat.toFixed(5) + ', ' +
+      e.latlng.lng.toFixed(5) + ')'
   });
 
-  state.modoMapa=
-    state.modoMapa==='origem'
+  state.modoMapa =
+    state.modoMapa === 'origem'
       ? 'destino'
       : 'origem';
 });
 
-// ENQUADRAMENTO
-
 function bounds() {
-  const layers=[
+  const layers = [
     ...pointLayer.getLayers(),
     ...routeLayer.getLayers()
   ];
 
-  if(layers.length) {
-    const g=L.featureGroup(layers);
+  if (!layers.length) return;
 
-    map.fitBounds(
-      g.getBounds().pad(.15),
-      {maxZoom:15}
-    );
-  }
+  const g = L.featureGroup(layers);
+
+  map.fitBounds(g.getBounds().pad(.15), {
+    maxZoom: 15
+  });
 }
 
-$('ajustar').onclick=bounds;
+$('ajustar').onclick = bounds;
 
-// DESENHAR ROTAS
+// DESENHO E SELEÇÃO DAS ROTAS
 
 function draw() {
   routeLayer.clearLayers();
-  drawn=[];
+  drawn = [];
 
-  state.rotas.forEach((r,i)=>{
-    const coords=
-      r.geometry.coordinates.map(
-        c=>[c[1],c[0]]
-      );
+  state.rotas.forEach((r, i) => {
+    const coords = r.geometry.coordinates.map(
+      c => [c[1], c[0]]
+    );
 
-    const line=L.polyline(coords,{
-      color:colors[i%colors.length],
-      weight:
-        i===state.selecionada?7:4,
-      opacity:
-        i===state.selecionada?1:.65
+    const line = L.polyline(coords, {
+      color: colors[i % colors.length],
+      weight: i === state.selecionada ? 7 : 4,
+      opacity: i === state.selecionada ? 1 : .65
     }).addTo(routeLayer);
 
-    line.on('click',()=>select(i));
-
+    line.on('click', () => select(i));
     drawn.push(line);
   });
 
@@ -892,56 +838,44 @@ function draw() {
 }
 
 function select(i) {
-  state.selecionada=i;
+  if (!state.rotas[i] || !drawn[i]) return;
 
+  state.selecionada = i;
   draw();
   render();
 
-  map.fitBounds(
-    drawn[i].getBounds().pad(.12),
-    {maxZoom:15}
-  );
+  map.fitBounds(drawn[i].getBounds().pad(.12), {
+    maxZoom: 15
+  });
 
-  msg('Rota '+(i+1)+' selecionada.');
+  msg('Rota ' + (i + 1) + ' selecionada.');
 }
 
-// LINK COMPARTILHÁVEL
+// DISTÂNCIA GEOGRÁFICA
 
-function link() {
-  const u=new URL(location.href);
-  u.search='';
+function distanciaMetros(a, b) {
+  const R = 6371000;
+  const rad = n => n * Math.PI / 180;
 
-  u.searchParams.set(
-    'o',
-    state.origem.lon+','+
-    state.origem.lat
-  );
+  const dLat = rad(b.lat - a.lat);
+  const dLon = rad(b.lon - a.lon);
 
-  u.searchParams.set(
-    'd',
-    state.destino.lon+','+
-    state.destino.lat
-  );
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(rad(a.lat)) *
+    Math.cos(rad(b.lat)) *
+    Math.sin(dLon / 2) ** 2;
 
-  u.searchParams.set(
-    'r',
-    state.selecionada
-  );
-
-  return u.toString();
+  return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-// ABRIR GOOGLE MAPS
+// GOOGLE MAPS: PONTOS DISTRIBUÍDOS PELA DISTÂNCIA
 
-
-function selecionarPontosPassagem(rota, quantidade = 3) {
+function selecionarPontosPassagem(rota, quantidade = 9) {
   const coordenadas = rota.geometry?.coordinates || [];
 
-  if (coordenadas.length < 3) {
-    return [];
-  }
+  if (coordenadas.length < 3) return [];
 
-  // Calcula a distância acumulada ao longo da rota.
   const distancias = [0];
   let total = 0;
 
@@ -963,18 +897,28 @@ function selecionarPontosPassagem(rota, quantidade = 3) {
   if (total === 0) return [];
 
   const pontos = [];
+  const indicesUsados = new Set();
 
   for (let n = 1; n <= quantidade; n++) {
     const alvo = total * n / (quantidade + 1);
 
-    let indice = 1;
+    let inicio = 1;
+    let fim = distancias.length - 2;
 
-    while (
-      indice < distancias.length - 1 &&
-      distancias[indice] < alvo
-    ) {
-      indice++;
+    while (inicio < fim) {
+      const meio = Math.floor((inicio + fim) / 2);
+
+      if (distancias[meio] < alvo) {
+        inicio = meio + 1;
+      } else {
+        fim = meio;
+      }
     }
+
+    const indice = inicio;
+
+    if (indicesUsados.has(indice)) continue;
+    indicesUsados.add(indice);
 
     const ponto = coordenadas[indice];
 
@@ -1004,27 +948,34 @@ function googleLink(rota) {
     state.destino.lat + ',' + state.destino.lon
   );
 
-  url.searchParams.set(
-    'travelmode',
-    'driving'
+  url.searchParams.set('travelmode', 'driving');
+
+  // Limite conservador para navegadores móveis.
+  const navegadorMovel =
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const limite = navegadorMovel ? 3 : 9;
+
+  const pontos = selecionarPontosPassagem(
+    rota,
+    limite
   );
 
-  // Utiliza até três pontos de passagem,
-  // respeitando a ordem do trajeto.
-  const pontos = selecionarPontosPassagem(rota, 3);
-
-  if (pontos.length > 0) {
+  if (pontos.length) {
     url.searchParams.set(
       'waypoints',
-      pontos.map(p => p.lat + ',' + p.lon).join('|')
+      pontos.map(p =>
+        p.lat.toFixed(6) + ',' +
+        p.lon.toFixed(6)
+      ).join('|')
     );
   }
 
   return url.toString();
 }
 
+// IDENTIFICAÇÃO DAS VIAS
 
-// RESULTADOS DAS ROTAS
 function identificarVias(rota) {
   const vias = [];
   const nomes = new Set();
@@ -1032,7 +983,6 @@ function identificarVias(rota) {
   for (const trecho of rota.legs || []) {
     for (const etapa of trecho.steps || []) {
       const nome = etapa.name?.trim();
-
       if (!nome) continue;
 
       const chave = nome.toLowerCase();
@@ -1047,169 +997,133 @@ function identificarVias(rota) {
   return vias;
 }
 
-  
-function render() {
-  const list=$('lista');
+// RESULTADOS E BOTÕES
 
+function render() {
+  const list = $('lista');
   list.replaceChildren();
 
-  $('contagem').textContent=
-    state.rotas.length+
-    ' rota'+
-    (state.rotas.length===1?'':'s');
+  $('contagem').textContent =
+    state.rotas.length + ' rota' +
+    (state.rotas.length === 1 ? '' : 's');
 
-  state.rotas.forEach((r,i)=>{
-    const card=document.createElement('div');
+  state.rotas.forEach((r, i) => {
+    const card = document.createElement('div');
+    const b = document.createElement('button');
 
-    const b=document.createElement(
-      'button'
-    );
+    b.className = 'route' +
+      (i === state.selecionada ? ' active' : '');
 
-    b.className=
-      'route'+
-      (
-        i===state.selecionada
-          ? ' active'
-          : ''
-      );
+    b.type = 'button';
 
-    b.type='button';
-
-    const dot=document.createElement(
-      'span'
-    );
-
-    dot.className='dot';
-
-    dot.style.background=
-      colors[i%colors.length];
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.background = colors[i % colors.length];
 
     b.append(
       dot,
       document.createTextNode(
-        i===0
-          ? 'Rota principal'
-          : 'Alternativa '+i
+        i === 0 ? 'Rota principal' : 'Alternativa ' + i
       )
     );
 
-    const sm=document.createElement(
-      'small'
-    );
+    const sm = document.createElement('small');
+    sm.textContent =
+      fmtKm(r.distance) + ' • ' + fmtTime(r.duration);
 
-    sm.textContent=
-      fmtKm(r.distance)+
-      ' • '+
-      fmtTime(r.duration);
+    b.append(sm);
 
-  b.append(sm);
+    const vias = identificarVias(r);
 
-const vias = identificarVias(r);
+    if (vias.length) {
+      const detalhes = document.createElement('small');
 
-if (vias.length > 0) {
-  const detalhes = document.createElement('small');
+      detalhes.textContent =
+        'Principais vias: ' +
+        vias.slice(0, 5).join(' • ');
 
-  detalhes.textContent =
-    'Principais vias: ' +
-    vias.slice(0, 5).join(' • ');
+      detalhes.style.marginTop = '8px';
+      b.append(detalhes);
+    }
 
-  detalhes.style.marginTop = '8px';
-  detalhes.style.lineHeight = '1.5';
-
-  b.append(detalhes);
-}
-
-b.onclick=()=>select(i);
-
+    b.onclick = () => select(i);
     card.append(b);
 
-    if(i===state.selecionada) {
-      const tools=document.createElement(
-        'div'
-      );
+    if (i === state.selecionada) {
+      const tools = document.createElement('div');
+      tools.className = 'route-tools';
 
-      tools.className='route-tools';
+      const actions = [
+        [
+          'Seguir por esta rota',
+          'navigation',
+          () => {
+            window.open(
+              googleLink(r),
+              '_blank',
+              'noopener,noreferrer'
+            );
 
-   
-const actions = [
-  [
-    'WhatsApp',
-    () => {
-      const text =
-        'SECURWAY — rota ' +
-        (i + 1) +
-        ' (' +
-        fmtKm(r.distance) +
-        ') ' +
-        link();
+            msg(
+              'Abrindo Google Maps com pontos de passagem. ' +
+              'Confira o percurso antes de iniciar.'
+            );
+          }
+        ],
+        [
+          'WhatsApp',
+          'share-2',
+          () => {
+            const texto =
+              'SECURWAY — ' +
+              (i === 0 ? 'Rota principal' : 'Alternativa ' + i) +
+              '\nDistância: ' + fmtKm(r.distance) +
+              '\nTempo estimado: ' + fmtTime(r.duration) +
+              '\nAbrir trajeto no Google Maps:\n' +
+              googleLink(r);
 
-      window.open(
-        'https://wa.me/?text=' +
-        encodeURIComponent(text),
-        '_blank',
-        'noopener,noreferrer'
-      );
-    }
-  ],
-  [
-    'Seguir por esta rota',
-    () => {
-      window.open(
-        googleLink(r),
-        '_blank',
-        'noopener,noreferrer'
-      );
+            window.open(
+              'https://wa.me/?text=' +
+              encodeURIComponent(texto),
+              '_blank',
+              'noopener,noreferrer'
+            );
+          }
+        ]
+      ];
 
-      msg(
-        'Abrindo navegação com pontos de passagem. ' +
-        'Confira o trajeto no Google Maps antes de iniciar.'
-      );
-    }
-  ]
-];
+      for (const [nome, icone, fn] of actions) {
+        const x = document.createElement('button');
 
-for (const [name, fn] of actions) {
-  const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'btn small';
 
-  x.className = 'btn small';
-  x.textContent = name;
-  x.onclick = fn;
+        if (icone === 'navigation') {
+          x.classList.add('navigate');
+        }
 
-  tools.append(x);
-}
+        const iEl = document.createElement('i');
+        iEl.setAttribute('data-lucide', icone);
+
+        x.append(
+          iEl,
+          document.createTextNode(nome)
+        );
+
+        x.onclick = fn;
+        tools.append(x);
+      }
 
       card.append(tools);
     }
 
     list.append(card);
   });
+
+  atualizarIcones();
 }
 
-// CÁLCULO DE ROTAS
-
-
-const ROUTE_CONFIG = {
-  maxRotas: 12,
-  maxConsultasExtras: 8,
-  desvioMaximo: 1.8,
-  timeout: 12000
-};
-
-function distanciaMetros(a, b) {
-  const R = 6371000;
-  const rad = n => n * Math.PI / 180;
-
-  const dLat = rad(b.lat - a.lat);
-  const dLon = rad(b.lon - a.lon);
-
-  const x =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(rad(a.lat)) *
-    Math.cos(rad(b.lat)) *
-    Math.sin(dLon / 2) ** 2;
-
-  return 2 * R * Math.asin(Math.sqrt(x));
-}
+// EXPLORAÇÃO DE ROTAS ALTERNATIVAS
 
 function pontoIntermediario(a, b, t, deslocamento) {
   const lat = a.lat + (b.lat - a.lat) * t;
@@ -1221,7 +1135,6 @@ function pontoIntermediario(a, b, t, deslocamento) {
 
   const dy = b.lat - a.lat;
   const tamanho = Math.hypot(dx, dy) || 1;
-
   const metrosPorGrau = 111320;
 
   const latOffset =
@@ -1233,10 +1146,7 @@ function pontoIntermediario(a, b, t, deslocamento) {
     deslocamento /
     (
       metrosPorGrau *
-      Math.max(
-        0.1,
-        Math.cos(lat * Math.PI / 180)
-      )
+      Math.max(.1, Math.cos(lat * Math.PI / 180))
     );
 
   return {
@@ -1246,34 +1156,25 @@ function pontoIntermediario(a, b, t, deslocamento) {
 }
 
 function gerarPontosAlternativos(origem, destino) {
-  const distancia = distanciaMetros(
-    origem,
-    destino
-  );
+  const distancia = distanciaMetros(origem, destino);
 
   const deslocamento = Math.min(
     6500,
-    Math.max(900, distancia * 0.13)
+    Math.max(900, distancia * .13)
   );
 
   const pontos = [];
 
-  for (const t of [0.3, 0.5, 0.7, 0.85]) {
+  for (const t of [.3, .5, .7, .85]) {
     pontos.push(
       pontoIntermediario(
-        origem,
-        destino,
-        t,
-        deslocamento
+        origem, destino, t, deslocamento
       )
     );
 
     pontos.push(
       pontoIntermediario(
-        origem,
-        destino,
-        t,
-        -deslocamento
+        origem, destino, t, -deslocamento
       )
     );
   }
@@ -1284,10 +1185,7 @@ function gerarPontosAlternativos(origem, destino) {
   );
 }
 
-async function consultarOSRM(
-  pontos,
-  alternativas = false
-) {
+async function consultarOSRM(pontos, alternativas = false) {
   const coordenadas = pontos
     .map(p => `${p.lon},${p.lat}`)
     .join(';');
@@ -1297,25 +1195,10 @@ async function consultarOSRM(
     coordenadas
   );
 
-  url.searchParams.set(
-    'overview',
-    'full'
-  );
-
-  url.searchParams.set(
-    'geometries',
-    'geojson'
-  );
-
-  url.searchParams.set(
-    'alternatives',
-    String(alternativas)
-  );
-
- url.searchParams.set(
-  'steps',
-  'true'
-);
+  url.searchParams.set('overview', 'full');
+  url.searchParams.set('geometries', 'geojson');
+  url.searchParams.set('alternatives', String(alternativas));
+  url.searchParams.set('steps', 'true');
 
   const controller = new AbortController();
 
@@ -1325,31 +1208,24 @@ async function consultarOSRM(
   );
 
   try {
-    const resposta = await fetch(
-      url,
-      { signal: controller.signal }
-    );
+    const resposta = await fetch(url, {
+      signal: controller.signal
+    });
 
     if (!resposta.ok) {
       throw new Error(
-        'OSRM retornou HTTP ' +
-        resposta.status
+        'OSRM retornou HTTP ' + resposta.status
       );
     }
 
     const dados = await resposta.json();
 
-    if (dados.code !== 'Ok') {
-      return [];
-    }
+    if (dados.code !== 'Ok') return [];
 
     return (dados.routes || []).filter(
       rota =>
-        rota.geometry &&
-        rota.geometry.coordinates &&
-        rota.geometry.coordinates.length > 1
+        rota.geometry?.coordinates?.length > 1
     );
-
   } finally {
     clearTimeout(timer);
   }
@@ -1358,7 +1234,6 @@ async function consultarOSRM(
 function amostrarTrajeto(rota) {
   const coords = rota.geometry.coordinates;
   const resultado = [];
-
   const total = 24;
 
   for (let i = 0; i <= total; i++) {
@@ -1375,7 +1250,6 @@ function amostrarTrajeto(rota) {
 function diferencaRotas(a, b) {
   const amostraA = amostrarTrajeto(a);
   const amostraB = amostrarTrajeto(b);
-
   let diferentes = 0;
 
   for (const ponto of amostraA) {
@@ -1383,22 +1257,14 @@ function diferencaRotas(a, b) {
 
     for (const outro of amostraB) {
       const distancia = distanciaMetros(
-        {
-          lat: ponto[1],
-          lon: ponto[0]
-        },
-        {
-          lat: outro[1],
-          lon: outro[0]
-        }
+        { lat: ponto[1], lon: ponto[0] },
+        { lat: outro[1], lon: outro[0] }
       );
 
       menor = Math.min(menor, distancia);
     }
 
-    if (menor > 350) {
-      diferentes++;
-    }
+    if (menor > 350) diferentes++;
   }
 
   return diferentes / amostraA.length;
@@ -1415,41 +1281,37 @@ function adicionarRotaUnica(
 
   if (
     candidata.distance >
-    distanciaPrincipal *
-    ROUTE_CONFIG.desvioMaximo
+    distanciaPrincipal * ROUTE_CONFIG.desvioMaximo
   ) {
     return false;
   }
 
   for (const existente of lista) {
     const diferencaAB = diferencaRotas(
-      candidata,
-      existente
+      candidata, existente
     );
 
     const diferencaBA = diferencaRotas(
-      existente,
-      candidata
+      existente, candidata
     );
 
     if (
-      diferencaAB < 0.25 &&
-      diferencaBA < 0.25
+      diferencaAB < .25 &&
+      diferencaBA < .25
     ) {
       return false;
     }
   }
 
   lista.push(candidata);
-
   return true;
 }
 
+// BUSCA PRINCIPAL
+
 async function route() {
   if (!state.origem || !state.destino) {
-    msg(
-      'Selecione origem e destino antes de buscar.'
-    );
+    msg('Selecione origem e destino antes de buscar.');
     return;
   }
 
@@ -1472,18 +1334,14 @@ async function route() {
     if (id !== state.request) return;
 
     if (!principais.length) {
-      throw new Error(
-        'Nenhuma rota encontrada.'
-      );
+      throw new Error('Nenhuma rota encontrada.');
     }
 
     principais.sort(
       (a, b) => a.duration - b.duration
     );
 
-    const distanciaPrincipal =
-      principais[0].distance;
-
+    const distanciaPrincipal = principais[0].distance;
     const encontradas = [];
 
     for (const rota of principais) {
@@ -1510,29 +1368,20 @@ async function route() {
       if (id !== state.request) return;
 
       if (
-        encontradas.length >=
-        ROUTE_CONFIG.maxRotas
+        encontradas.length >= ROUTE_CONFIG.maxRotas
       ) {
         break;
       }
 
       msg(
-        'Explorando caminhos alternativos: ' +
-        (i + 1) +
-        ' de ' +
-        pontos.length +
-        ' consultas. ' +
-        encontradas.length +
-        ' rota(s) encontrada(s).'
+        'Explorando alternativas: ' +
+        (i + 1) + ' de ' + pontos.length +
+        '. Encontradas: ' + encontradas.length
       );
 
       try {
         const alternativas = await consultarOSRM(
-          [
-            origem,
-            pontos[i],
-            destino
-          ],
+          [origem, pontos[i], destino],
           false
         );
 
@@ -1584,78 +1433,81 @@ async function route() {
     msg(
       'Pesquisa concluída: ' +
       state.rotas.length +
-      ' rota(s) distinta(s) encontrada(s). ' +
-      'As alternativas são experimentais e ' +
-      'devem ser verificadas antes do deslocamento.'
+      ' rota(s) distinta(s) encontrada(s).'
     );
 
   } catch (erro) {
     if (id === state.request) {
       console.error(erro);
-
       msg(
         'Não foi possível calcular as rotas: ' +
         erro.message
       );
     }
-
   } finally {
-    botao.disabled = false;
+    // Não reabilitar o botão de uma busca
+    // antiga se outra busca já começou.
+    if (id === state.request) {
+      botao.disabled = false;
+    }
   }
 }
 
+$('buscar').onclick = route;
 
-$('buscar').onclick=route;
+// RECUPERAR PONTOS DE UM LINK ANTIGO
 
-// RECUPERAR ORIGEM E DESTINO COMPARTILHADOS
+(function restore() {
+  const p = new URLSearchParams(location.search);
 
-(function restore(){
-  const p=new URLSearchParams(
-    location.search
-  );
+  const parse = s => {
+    if (!s) return null;
 
-  const parse=s=>{
-    if(!s) return null;
+    const partes = s.split(',');
+    if (partes.length !== 2) return null;
 
-    const [lon,lat]=s.split(',').map(
-      Number
-    );
+    const lon = Number(partes[0]);
+    const lat = Number(partes[1]);
 
-    return (
-      Number.isFinite(lon) &&
-      Number.isFinite(lat) &&
-      Math.abs(lat)<=90 &&
-      Math.abs(lon)<=180
-    )
-      ? {
-          lon,
-          lat,
-          name:
-            'Local compartilhado ('+
-            lat.toFixed(5)+', '+
-            lon.toFixed(5)+')'
-        }
-      : null;
+    if (
+      !Number.isFinite(lon) ||
+      !Number.isFinite(lat) ||
+      Math.abs(lat) > 90 ||
+      Math.abs(lon) > 180
+    ) {
+      return null;
+    }
+
+    return {
+      lon,
+      lat,
+      name:
+        'Local compartilhado (' +
+        lat.toFixed(5) + ', ' +
+        lon.toFixed(5) + ')'
+    };
   };
 
-  const o=parse(p.get('o'));
-  const d=parse(p.get('d'));
+  const o = parse(p.get('o'));
+  const d = parse(p.get('d'));
 
-  if(o&&d) {
-    state.origem=o;
-    state.destino=d;
+  if (o && d) {
+    state.origem = o;
+    state.destino = d;
 
-    $('origem').value=o.name;
-    $('destino').value=d.name;
+    $('origem').value = o.name;
+    $('destino').value = d.name;
 
     markers();
 
     msg(
-      'Pontos compartilhados carregados. '+
-      'Clique em Buscar rotas para recalcular.'
+      'Pontos compartilhados carregados. ' +
+      'Clique em Buscar rotas.'
     );
   }
 })();
+
+atualizarIcones();
 </script>
 
 </body>
