@@ -933,52 +933,96 @@ function link() {
 
 // ABRIR GOOGLE MAPS
 
-function googleLink(r) {
-  const u=new URL(
+
+function selecionarPontosPassagem(rota, quantidade = 3) {
+  const coordenadas = rota.geometry?.coordinates || [];
+
+  if (coordenadas.length < 3) {
+    return [];
+  }
+
+  // Calcula a distância acumulada ao longo da rota.
+  const distancias = [0];
+  let total = 0;
+
+  for (let i = 1; i < coordenadas.length; i++) {
+    const anterior = {
+      lon: coordenadas[i - 1][0],
+      lat: coordenadas[i - 1][1]
+    };
+
+    const atual = {
+      lon: coordenadas[i][0],
+      lat: coordenadas[i][1]
+    };
+
+    total += distanciaMetros(anterior, atual);
+    distancias.push(total);
+  }
+
+  if (total === 0) return [];
+
+  const pontos = [];
+
+  for (let n = 1; n <= quantidade; n++) {
+    const alvo = total * n / (quantidade + 1);
+
+    let indice = 1;
+
+    while (
+      indice < distancias.length - 1 &&
+      distancias[indice] < alvo
+    ) {
+      indice++;
+    }
+
+    const ponto = coordenadas[indice];
+
+    pontos.push({
+      lat: ponto[1],
+      lon: ponto[0]
+    });
+  }
+
+  return pontos;
+}
+
+function googleLink(rota) {
+  const url = new URL(
     'https://www.google.com/maps/dir/'
   );
 
-  u.searchParams.set('api','1');
+  url.searchParams.set('api', '1');
 
-  u.searchParams.set(
+  url.searchParams.set(
     'origin',
-    state.origem.lat+','+
-    state.origem.lon
+    state.origem.lat + ',' + state.origem.lon
   );
 
-  u.searchParams.set(
+  url.searchParams.set(
     'destination',
-    state.destino.lat+','+
-    state.destino.lon
+    state.destino.lat + ',' + state.destino.lon
   );
 
-  u.searchParams.set(
+  url.searchParams.set(
     'travelmode',
     'driving'
   );
 
-  if(
-    state.selecionada>0 &&
-    r.geometry.coordinates.length>10
-  ) {
-    const c=r.geometry.coordinates;
+  // Utiliza até três pontos de passagem,
+  // respeitando a ordem do trajeto.
+  const pontos = selecionarPontosPassagem(rota, 3);
 
-    u.searchParams.set(
+  if (pontos.length > 0) {
+    url.searchParams.set(
       'waypoints',
-      [.25,.5,.75].map(f=>{
-        const p=c[
-          Math.floor(
-            (c.length-1)*f
-          )
-        ];
-
-        return p[1]+','+p[0];
-      }).join('|')
+      pontos.map(p => p.lat + ',' + p.lon).join('|')
     );
   }
 
-  return u.toString();
+  return url.toString();
 }
+
 
 // RESULTADOS DAS ROTAS
 function identificarVias(rota) {
@@ -1087,25 +1131,7 @@ b.onclick=()=>select(i);
       tools.className='route-tools';
 
       const actions=[
-        [
-          'Copiar link',
-          async()=>{
-            try {
-              await navigator.clipboard.writeText(
-                link()
-              );
-
-              msg(
-                'Link copiado. '+
-                'A rota será recalculada ao abrir.'
-              );
-            } catch {
-              msg(
-                'Não foi possível copiar o link.'
-              );
-            }
-          }
-        ],
+      
 
         [
           'WhatsApp',
@@ -1127,44 +1153,22 @@ b.onclick=()=>select(i);
           }
         ],
 
-        [
-          'Google Maps',
-          ()=>{
-            window.open(
-              googleLink(r),
-              '_blank',
-              'noopener,noreferrer'
-            );
-
-            msg(
-              'Google Maps recalculará o caminho; '+
-              'pode ser diferente.'
-            );
-          }
-        ],
-
-        [
-          'Waze',
-          ()=>{
-            window.open(
-              'https://waze.com/ul?'+
-              new URLSearchParams({
-                ll:
-                  state.destino.lat+','+
-                  state.destino.lon,
-                navigate:'yes'
-              }),
-              '_blank',
-              'noopener,noreferrer'
-            );
-
-            msg(
-              'Waze calculará sua própria rota '+
-              'até o destino.'
-            );
-          }
-        ]
-      ];
+       
+          [
+        'Seguir por esta rota',
+        ()=>{
+          window.open(
+            googleLink(r),
+            '_blank',
+            'noopener,noreferrer'
+          );
+      
+          msg(
+            'Abrindo navegação com pontos de passagem. ' +
+            'Confira o trajeto no Google Maps antes de iniciar.'
+          );
+        }
+          ],
 
       for(const [name,fn] of actions) {
         const x=document.createElement(
