@@ -1130,57 +1130,53 @@ b.onclick=()=>select(i);
 
       tools.className='route-tools';
 
-      const actions=[
-      
+   
+const actions = [
+  [
+    'WhatsApp',
+    () => {
+      const text =
+        'SECURWAY — rota ' +
+        (i + 1) +
+        ' (' +
+        fmtKm(r.distance) +
+        ') ' +
+        link();
 
-        [
-          'WhatsApp',
-          ()=>{
-            const text=
-              'SECURWAY — rota '+
-              (i+1)+
-              ' ('+
-              fmtKm(r.distance)+
-              ') '+
-              link();
+      window.open(
+        'https://wa.me/?text=' +
+        encodeURIComponent(text),
+        '_blank',
+        'noopener,noreferrer'
+      );
+    }
+  ],
+  [
+    'Seguir por esta rota',
+    () => {
+      window.open(
+        googleLink(r),
+        '_blank',
+        'noopener,noreferrer'
+      );
 
-            window.open(
-              'https://wa.me/?text='+
-              encodeURIComponent(text),
-              '_blank',
-              'noopener,noreferrer'
-            );
-          }
-        ],
+      msg(
+        'Abrindo navegação com pontos de passagem. ' +
+        'Confira o trajeto no Google Maps antes de iniciar.'
+      );
+    }
+  ]
+];
 
-       
-          [
-        'Seguir por esta rota',
-        ()=>{
-          window.open(
-            googleLink(r),
-            '_blank',
-            'noopener,noreferrer'
-          );
-      
-          msg(
-            'Abrindo navegação com pontos de passagem. ' +
-            'Confira o trajeto no Google Maps antes de iniciar.'
-          );
-        }
-          ],
+for (const [name, fn] of actions) {
+  const x = document.createElement('button');
 
-      for(const [name,fn] of actions) {
-        const x=document.createElement(
-          'button'
-        );
+  x.className = 'btn small';
+  x.textContent = name;
+  x.onclick = fn;
 
-        x.className='btn small';
-        x.textContent=name;
-        x.onclick=fn;
-
-        tools.append(x);
-      }
+  tools.append(x);
+}
 
       card.append(tools);
     }
