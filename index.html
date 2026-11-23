@@ -872,64 +872,204 @@ function distanciaMetros(a, b) {
 // GOOGLE MAPS: PONTOS DISTRIBUÍDOS PELA DISTÂNCIA
 
 function selecionarPontosPassagem(rota, quantidade = 9) {
-  const coordenadas = rota.geometry?.coordinates || [];
+  const coords = rota.geometry?.coordinates || [];
 
-  if (coordenadas.length < 3) return [];
-
-  const distancias = [0];
-  let total = 0;
-
-  for (let i = 1; i < coordenadas.length; i++) {
-    const anterior = {
-      lon: coordenadas[i - 1][0],
-      lat: coordenadas[i - 1][1]
-    };
-
-    const atual = {
-      lon: coordenadas[i][0],
-      lat: coordenadas[i][1]
-    };
-
-    total += distanciaMetros(anterior, atual);
-    distancias.push(total);
+  if (coords.length < 3 || quantidade < 1) {
+    return [];
   }
 
-  if (total === 0) return [];
+  const rad = graus => graus * Math.PI / 180;
 
-  const pontos = [];
-  const indicesUsados = new Set();
+  function distancia(a, b) {
+    return distanciaMetros(
+      { lat: a[1], lon: a[0] },
+      { lat: b[1], lon: b[0] }
+    );
+  }
 
-  for (let n = 1; n <= quantidade; n++) {
-    const alvo = total * n / (quantidade + 1);
+  function angulo(a, b) {
+    const latitudeMedia = rad((a[1] + b[1]) / 2);
 
-    let inicio = 1;
-    let fim = distancias.length - 2;
+    const dx =
+      (b[0] - a[0]) * Math.cos(latitudeMedia);
+
+    const dy = b[1] - a[1];
+
+    return Math.atan2(dy, dx);
+  }
+
+  function diferencaAngular(a, b) {
+    return Math.abs(
+      Math.atan2(
+        Math.sin(a - b),
+        Math.cos(a - b)
+      )
+    ) * 180 / Math.PI;
+  }
+
+  // Distância acumulada em toda a geometria.
+  const acumulada = [0];
+
+  for (let i = 1; i < coords.length; i++) {
+    acumulada.push(
+      acumulada[i - 1] +
+      distancia(coords[i - 1], coords[i])
+    );
+  }
+
+  const total = acumulada[acumulada.length - 1];
+
+  if (total <= 0) return [];
+
+  // Analisa a mudança de direção usando trechos
+  // afastados para evitar curvas pequenas da via.
+  function indiceNaDistancia(alvo) {
+    let inicio = 0;
+    let fim = acumulada.length - 1;
 
     while (inicio < fim) {
       const meio = Math.floor((inicio + fim) / 2);
 
-      if (distancias[meio] < alvo) {
+      if (acumulada[meio] < alvo) {
         inicio = meio + 1;
       } else {
         fim = meio;
       }
     }
 
-    const indice = inicio;
+    return inicio;
+  }
 
-    if (indicesUsados.has(indice)) continue;
-    indicesUsados.add(indice);
+  const janela = Math.min(
+    700,
+    Math.max(120, total / 45)
+  );
 
-    const ponto = coordenadas[indice];
+  const candidatos = [];
 
-    pontos.push({
-      lat: ponto[1],
-      lon: ponto[0]
+  for (let i = 1; i < coords.length - 1; i++) {
+    const pos = acumulada[i];
+
+    if (pos < janela || pos > total - janela) {
+      continue;
+    }
+
+    const anterior = indiceNaDistancia(
+      Math.max(0, pos - janela)
+    );
+
+    const posterior = indiceNaDistancia(
+      Math.min(total, pos + janela)
+    );
+
+    if (
+      anterior >= i ||
+      posterior <= i ||
+      posterior >= coords.length
+    ) {
+      continue;
+    }
+
+    const entrada = angulo(
+      coords[anterior],
+      coords[i]
+    );
+
+    const saida = angulo(
+      coords[i],
+      coords[posterior]
+    );
+
+    const mudanca = diferencaAngular(
+      entrada,
+      saida
+    );
+
+    if (mudanca >= 25) {
+      candidatos.push({
+        indice: i,
+        pos,
+        pontuacao: mudanca
+      });
+    }
+  }
+
+  // Seleciona mudanças importantes, mantendo
+  // distância mínima entre os pontos escolhidos.
+  const escolhidos = [];
+
+  const separacaoMinima = Math.min(
+    1200,
+    Math.max(200, total / (quantidade * 4))
+  );
+
+  candidatos.sort(
+    (a, b) => b.pontuacao - a.pontuacao
+  );
+
+  for (const candidato of candidatos) {
+    if (escolhidos.length >= quantidade) break;
+
+    const proximo = escolhidos.some(
+      p =>
+        Math.abs(p.pos - candidato.pos) <
+        separacaoMinima
+    );
+
+    if (!proximo) {
+      escolhidos.push(candidato);
+    }
+  }
+
+  // Preenche vagas nos maiores intervalos
+  // ainda não representados.
+  while (escolhidos.length < quantidade) {
+    const posicoes = [
+      0,
+      ...escolhidos.map(p => p.pos).sort((a, b) => a - b),
+      total
+    ];
+
+    let maiorIntervalo = 0;
+    let alvo = null;
+
+    for (let i = 1; i < posicoes.length; i++) {
+      const intervalo = posicoes[i] - posicoes[i - 1];
+
+      if (intervalo > maiorIntervalo) {
+        maiorIntervalo = intervalo;
+        alvo = (posicoes[i] + posicoes[i - 1]) / 2;
+      }
+    }
+
+    if (alvo === null) break;
+
+    const indice = indiceNaDistancia(alvo);
+
+    if (
+      indice <= 0 ||
+      indice >= coords.length - 1 ||
+      escolhidos.some(p => p.indice === indice)
+    ) {
+      break;
+    }
+
+    escolhidos.push({
+      indice,
+      pos: acumulada[indice],
+      pontuacao: 0
     });
   }
 
-  return pontos;
+  // Mantém a ordem do trajeto.
+  escolhidos.sort((a, b) => a.pos - b.pos);
+
+  return escolhidos.map(p => ({
+    lat: coords[p.indice][1],
+    lon: coords[p.indice][0]
+  }));
 }
+
 
 function googleLink(rota) {
   const url = new URL(
