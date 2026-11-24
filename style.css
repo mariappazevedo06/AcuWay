@@ -36,7 +36,14 @@ button:focus-visible, input:focus-visible {
 .head {
   display: flex;
   align-items: center;
+  gap: 16px;
   padding: 8px 0 18px;
+}
+
+.logo-seguranca {
+  width: 75px;
+  height: 75px;
+  object-fit: contain;
 }
 
 .brand {
