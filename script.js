@@ -1216,58 +1216,76 @@ function pontoIntermediario(
 
 }
 
-function gerarPontosAlternativos(
-  origem,
-  destino
-) {
+function gerarPontosAlternativos(origem, destino) {
 
-  const distancia = distanciaMetros(
-    origem,
-    destino
+  const principal = state.rotas[0];
+
+  if (!principal) return [];
+
+  const amostras = amostrarTrajeto(
+    principal,
+    300,
+    500
   );
 
-  const deslocamento = Math.min(
-
-    5000,
-
-    Math.max(
-      400,
-      distancia * 0.08
-    )
-
-  );
+  if (amostras.length < 3) return [];
 
   const pontos = [];
 
   const posicoes = [
-    0.25,
+    0.20,
+    0.35,
     0.50,
-    0.75
+    0.65,
+    0.80
   ];
 
-  const fatores = [1, 2];
+  const deslocamentos = [
+    1500,
+    3000,
+    5000
+  ];
 
-  for (const fator of fatores) {
+  for (const deslocamento of deslocamentos) {
 
-    for (const t of posicoes) {
+    for (const proporcao of posicoes) {
+
+      const i = Math.round(
+        proporcao * (amostras.length - 1)
+      );
+
+      const anterior = amostras[
+        Math.max(0, i - 1)
+      ];
+
+      const posterior = amostras[
+        Math.min(amostras.length - 1, i + 1)
+      ];
 
       for (const lado of [1, -1]) {
 
-        pontos.push(
-
-          pontoIntermediario(
-
-            origem,
-
-            destino,
-
-            t,
-
-            deslocamento * fator * lado
-
-          )
-
+        const ponto = pontoIntermediario(
+          anterior,
+          posterior,
+          0.5,
+          deslocamento * lado
         );
+
+        if (
+          distanciaAteRota(ponto, principal) < 500
+        ) {
+          continue;
+        }
+
+        if (
+          pontos.some(p =>
+            distanciaMetros(p, ponto) < 700
+          )
+        ) {
+          continue;
+        }
+
+        pontos.push(ponto);
 
       }
 
@@ -1275,12 +1293,14 @@ function gerarPontosAlternativos(
 
   }
 
+  console.log(
+    'SECURWAY | Pontos de exploração:',
+    pontos
+  );
+
   return pontos.slice(
-
     0,
-
     ROUTE_CONFIG.maxConsultasExtras
-
   );
 
 }
@@ -1341,13 +1361,19 @@ function adicionarRotaUnica(
 
   if (rotaTemRetornoOuLaco(candidata)) {
 
-    console.log(
-      'Rota descartada: retorno ou laço.'
-    );
+  console.log(
+    'SECURWAY | Rota descartada:',
+    {
+      motivo: 'Retorno ou laço',
+      distancia: fmtKm(candidata.distance),
+      tempo: fmtTime(candidata.duration),
+      vias: identificarVias(candidata)
+    }
+  );
 
-    return false;
+  return false;
 
-  }
+}
 
   if (
 
@@ -3186,19 +3212,13 @@ async function route() {
 
       try {
 
-        const alternativas =
-
-          await consultarOSRM(
-
-            [origem, pontos[i], destino],
-
-            false,
-
-            800,
-
-            id
-
-          );
+       const alternativas =
+  await consultarOSRM(
+    [origem, pontos[i], destino],
+    false,
+    1500,
+    id
+  );
 
         if (id !== state.request) return;
 
