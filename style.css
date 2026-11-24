@@ -1,29 +1,38 @@
 /* ==================================================
-   SECURWAY - IDENTIDADE VISUAL
-   SEGURANÇA CORPORATIVA
+   SECURWAY
+   SEGURANÇA CORPORATIVA - PORTO DO AÇU
    ================================================== */
 
 :root {
   color-scheme: dark;
 
-  --bg: #0d0d0d;
-  --panel: #191919;
-  --field: #252525;
-  --line: #404040;
+  /* Identidade visual */
+  --bg: #000000;
+  --panel: #222222;
+  --field: #101010;
+  --line: #555555;
 
-  --text: #f5f5f5;
-  --muted: #b0b0b0;
+  /* Textos */
+  --text: #ffffff;
+  --muted: #c6c5c3;
 
-  --accent: #801d35;
-  --accent-hover: #a32d49;
-  --accent-dark: #541326;
-  --accent-soft: #29171d;
-  --accent-border: #a32d49;
-  --accent-light: #d98198;
+  /* Vermelho institucional */
+  --accent: #95232b;
+  --accent-hover: #ad3039;
+  --accent-dark: #70191f;
 
-  --button: #292929;
-  --button-hover: #383838;
-  --button-border: #484848;
+  /* Prata e laranja */
+  --silver: #c6c5c3;
+  --orange: #c6691c;
+
+  /* Botões secundários */
+  --button: #222222;
+  --button-hover: #333333;
+  --button-border: #555555;
+
+  /* Rotas */
+  --route-bg: #191919;
+  --route-active: #171717;
 }
 
 /* ==================================================
@@ -57,7 +66,7 @@ button:disabled {
 
 button:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--accent-light);
+  outline: 2px solid var(--silver);
   outline-offset: 2px;
 }
 
@@ -79,7 +88,7 @@ input:focus-visible {
 }
 
 /* ==================================================
-   LOGOTIPO E IDENTIDADE
+   LOGOTIPO E IDENTIDADE VISUAL
    ================================================== */
 
 .logo-seg-corp {
@@ -93,7 +102,7 @@ input:focus-visible {
   font-size: 28px;
   letter-spacing: 3px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--silver);
 }
 
 .subtitle {
@@ -102,11 +111,12 @@ input:focus-visible {
 }
 
 /* ==================================================
-   LAYOUT
+   LAYOUT PRINCIPAL
    ================================================== */
 
 .layout {
   display: grid;
+
   grid-template-columns:
     minmax(310px, 390px)
     minmax(0, 1fr);
@@ -126,10 +136,11 @@ input:focus-visible {
 h2 {
   font-size: 17px;
   margin: 0 0 14px;
+  color: var(--text);
 }
 
 /* ==================================================
-   CAMPOS DE PESQUISA
+   CAMPOS DE ORIGEM E DESTINO
    ================================================== */
 
 .field {
@@ -148,8 +159,10 @@ h2 {
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 10px;
+
   background: var(--field);
   color: var(--text);
+
   padding: 13px;
 
   transition:
@@ -157,13 +170,13 @@ h2 {
     box-shadow .2s;
 }
 
-.field input:focus {
-  border-color: var(--accent-border);
-  box-shadow: 0 0 0 3px #801d3526;
+.field input::placeholder {
+  color: #929292;
 }
 
-.field input::placeholder {
-  color: #858585;
+.field input:focus {
+  border-color: var(--silver);
+  box-shadow: 0 0 0 3px #c6c5c320;
 }
 
 /* ==================================================
@@ -181,6 +194,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   gap: 8px;
 
   background: var(--button);
@@ -198,7 +212,7 @@ h2 {
 
 .btn:hover:not(:disabled) {
   background: var(--button-hover);
-  border-color: #606060;
+  border-color: var(--silver);
 }
 
 .btn:active:not(:disabled) {
@@ -209,8 +223,9 @@ h2 {
 
 .btn.primary {
   background: var(--accent);
-  border-color: var(--accent-border);
-  color: #ffffff;
+  border-color: var(--accent);
+  color: var(--text);
+
   font-weight: 700;
   flex: 1;
 }
@@ -222,12 +237,17 @@ h2 {
 
 .btn.primary:active:not(:disabled) {
   background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
+
+/* Botões menores */
 
 .btn.small {
   padding: 9px 11px;
   font-size: 12px;
 }
+
+/* Ícones dos botões */
 
 .btn svg {
   width: 17px;
@@ -248,7 +268,7 @@ h2 {
   left: 0;
   right: 0;
 
-  background: var(--field);
+  background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
 
@@ -265,8 +285,8 @@ h2 {
 .suggest button {
   display: block;
   text-align: left;
-  width: 100%;
 
+  width: 100%;
   padding: 11px;
 
   border: 0;
@@ -284,7 +304,7 @@ h2 {
 
 .suggest button:hover,
 .suggest button:focus {
-  background: var(--accent-soft);
+  background: #333333;
 }
 
 .suggest small {
@@ -312,7 +332,7 @@ h2 {
   width: 100%;
   text-align: left;
 
-  background: #202020;
+  background: var(--route-bg);
   color: var(--text);
 
   border: 1px solid var(--line);
@@ -328,19 +348,22 @@ h2 {
 
 .route:hover:not(:disabled) {
   background: #292929;
-  border-color: var(--accent-border);
+  border-color: var(--silver);
 }
 
 /* Rota selecionada */
 
 .route.active {
-  border: 1px solid var(--accent-border);
-  background: var(--accent-soft);
+  border: 1px solid var(--silver);
+  background: var(--route-active);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .route.active:hover:not(:disabled) {
-  background: #351c25;
+  background: #292929;
 }
+
+/* Informações das rotas */
 
 .route small {
   display: block;
@@ -365,8 +388,8 @@ h2 {
 
 .route-tools .navigate {
   background: var(--accent);
-  border-color: var(--accent-border);
-  color: #ffffff;
+  border-color: var(--accent);
+  color: var(--text);
   font-weight: 700;
 }
 
@@ -377,6 +400,7 @@ h2 {
 
 .route-tools .navigate:active:not(:disabled) {
   background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 /* ==================================================
@@ -406,15 +430,21 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   padding: 6px 6px 12px;
 }
 
 #map {
   height: min(75vh, 720px);
   min-height: 430px;
+
   border-radius: 12px;
-  background: #252525;
+  background: var(--field);
 }
+
+/* ==================================================
+   PERSONALIZAÇÃO DO LEAFLET
+   ================================================== */
 
 .leaflet-container {
   font: inherit;
@@ -426,6 +456,43 @@ h2 {
   color: var(--text);
 }
 
+.leaflet-container a.leaflet-popup-close-button {
+  color: var(--silver);
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  color: var(--text);
+}
+
+/* Botões de zoom */
+
+.leaflet-bar a {
+  background: var(--panel);
+  color: var(--text);
+  border-bottom: 1px solid var(--line);
+}
+
+.leaflet-bar a:hover {
+  background: var(--button-hover);
+  color: var(--silver);
+}
+
+.leaflet-bar a.leaflet-disabled {
+  background: var(--field);
+  color: #777777;
+}
+
+/* Créditos do mapa */
+
+.leaflet-container .leaflet-control-attribution {
+  background: #ffffffd9;
+  color: #333333;
+}
+
+.leaflet-control-attribution a {
+  color: #70191f;
+}
+
 /* ==================================================
    RODAPÉ
    ================================================== */
@@ -434,7 +501,11 @@ h2 {
   font-size: 11px;
   color: var(--muted);
   line-height: 1.6;
+
   margin-top: 16px;
+  padding-top: 12px;
+
+  border-top: 2px solid var(--orange);
 }
 
 /* ==================================================
@@ -443,11 +514,14 @@ h2 {
 
 .badge {
   font-size: 12px;
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-border);
-  color: var(--text);
-  padding: 5px 9px;
+
+  background: #333333;
+  color: var(--silver);
+
+  border: 1px solid var(--line);
   border-radius: 20px;
+
+  padding: 5px 9px;
 }
 
 /* ==================================================
@@ -456,8 +530,10 @@ h2 {
 
 .dot {
   display: inline-block;
+
   width: 11px;
   height: 11px;
+
   border-radius: 50%;
   margin-right: 7px;
 }
@@ -467,12 +543,12 @@ h2 {
    ================================================== */
 
 a {
-  color: var(--accent-light);
+  color: var(--silver);
   transition: color .2s;
 }
 
 a:hover {
-  color: #f0a5b8;
+  color: var(--text);
 }
 
 /* ==================================================
@@ -484,16 +560,16 @@ a:hover {
 }
 
 .suggest::-webkit-scrollbar-track {
-  background: var(--panel);
+  background: var(--field);
 }
 
 .suggest::-webkit-scrollbar-thumb {
-  background: var(--accent);
+  background: #555555;
   border-radius: 10px;
 }
 
 .suggest::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-hover);
+  background: var(--silver);
 }
 
 /* ==================================================
