@@ -19,10 +19,10 @@ const colors = [
 ];
 
 const ROUTE_CONFIG = {
-  maxRotas: 12,
-  maxConsultasExtras: 8,
-  desvioMaximo: 1.4,
-  timeout: 12000
+  maxRotas: 20,
+  maxConsultasExtras: 16,
+  desvioMaximo: 2.5,
+  timeout: 15000
 };
 
 function atualizarIcones() {
@@ -728,24 +728,30 @@ function gerarPontosAlternativos(origem, destino) {
   const distancia = distanciaMetros(origem, destino);
 
   const deslocamento = Math.min(
-    6500,
-    Math.max(900, distancia * .13)
+    15000,
+    Math.max(900, distancia * 0.15)
   );
 
   const pontos = [];
 
-  for (const t of [.3, .5, .7, .85]) {
-    pontos.push(
-      pontoIntermediario(
-        origem, destino, t, deslocamento
-      )
-    );
+  const posicoes = [0.2, 0.4, 0.6, 0.8];
+  const fatores = [1, 2];
 
-    pontos.push(
-      pontoIntermediario(
-        origem, destino, t, -deslocamento
-      )
-    );
+  for (const fator of fatores) {
+    for (const t of posicoes) {
+      for (const lado of [1, -1]) {
+
+        pontos.push(
+          pontoIntermediario(
+            origem,
+            destino,
+            t,
+            deslocamento * fator * lado
+          )
+        );
+
+      }
+    }
   }
 
   return pontos.slice(
@@ -753,62 +759,6 @@ function gerarPontosAlternativos(origem, destino) {
     ROUTE_CONFIG.maxConsultasExtras
   );
 }
-
-async function consultarOSRM(pontos, alternativas = false) {
-  const coordenadas = pontos
-    .map(p => `${p.lon},${p.lat}`)
-    .join(';');
-
-  const url = new URL(
-    'https://router.project-osrm.org/route/v1/driving/' +
-    coordenadas
-  );
-
-  url.searchParams.set('overview', 'full');
-  url.searchParams.set('geometries', 'geojson');
-  url.searchParams.set('alternatives', String(alternativas));
-  url.searchParams.set('steps', 'true');
-
-  if (pontos.length > 2) {
-    url.searchParams.set(
-      'radiuses',
-      pontos.map((_, idx) =>
-        (idx === 0 || idx === pontos.length - 1) ? 'unlimited' : '1500'
-      ).join(';')
-    );
-  }
-
-  const controller = new AbortController();
-
-  const timer = setTimeout(
-    () => controller.abort(),
-    ROUTE_CONFIG.timeout
-  );
-
-  try {
-    const resposta = await fetch(url, {
-      signal: controller.signal
-    });
-
-    if (!resposta.ok) {
-      throw new Error(
-        'OSRM retornou HTTP ' + resposta.status
-      );
-    }
-
-    const dados = await resposta.json();
-
-    if (dados.code !== 'Ok') return [];
-
-    return (dados.routes || []).filter(
-      rota =>
-        rota.geometry?.coordinates?.length > 1
-    );
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 function amostrarTrajeto(rota) {
   const coords = rota.geometry.coordinates;
   const resultado = [];
