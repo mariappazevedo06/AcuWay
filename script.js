@@ -983,41 +983,59 @@ function diferencaRotas(a, b) {
 }
 
 function rotaTemRetornoOuLaco(rota) {
+
   const legs = rota.legs || [];
 
-  for (let i = 1; i < legs.length; i++) {
+  // Identifica manobras de retorno internas
+  for (const leg of legs) {
+    for (const step of leg.steps || []) {
 
-    const a =
-      legs[i - 1].steps?.at(-1)
-        ?.geometry?.coordinates;
+      const tipo = step.maneuver?.type;
+      const modificador = step.maneuver?.modifier;
 
-    const b =
-      legs[i].steps?.[0]
-        ?.geometry?.coordinates;
+      if (
+        modificador === 'uturn' &&
+        tipo !== 'depart' &&
+        tipo !== 'arrive'
+      ) {
+        return true;
+      }
 
-    if (
-      !a ||
-      !b ||
-      a.length < 2 ||
-      b.length < 2
-    ) {
-      continue;
+    }
+  }
+
+  // Analisa retornos na geometria completa
+  const pontos = amostrarTrajeto(rota);
+
+  for (let i = 0; i < pontos.length; i++) {
+
+    for (let j = i + 1; j < pontos.length; j++) {
+
+      const distanciaPercorrida =
+        pontos[j].d - pontos[i].d;
+
+      if (distanciaPercorrida < 600) {
+        continue;
+      }
+
+      const distanciaDireta = distanciaMetros(
+        pontos[i],
+        pontos[j]
+      );
+
+      if (
+        distanciaDireta < 60 &&
+        distanciaPercorrida > 600
+      ) {
+        return true;
+      }
+
     }
 
-    const p = a[a.length - 2];
-    const q = b[1];
-
-    if (
-      p[0] === q[0] &&
-      p[1] === q[1]
-    ) {
-      return true;
-    }
   }
 
   return false;
 }
-
 function adicionarRotaUnica(
   lista,
   candidata,
