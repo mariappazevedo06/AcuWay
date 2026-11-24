@@ -21,7 +21,7 @@ const colors = [
 const ROUTE_CONFIG = {
   maxRotas: 20,
   maxConsultasExtras: 16,
-  desvioMaximo: 2.5,
+  desvioMaximo: 1.8,
   timeout: 15000
 };
 
