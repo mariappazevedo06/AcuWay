@@ -1,15 +1,38 @@
+/* ==================================================
+   SECURWAY - IDENTIDADE VISUAL
+   SEGURANÇA CORPORATIVA
+   ================================================== */
+
 :root {
   color-scheme: dark;
+
   --bg: #0d0d0d;
   --panel: #191919;
   --field: #252525;
   --line: #404040;
+
   --text: #f5f5f5;
   --muted: #b0b0b0;
-  --accent: #c49a50;
+
+  --accent: #801d35;
+  --accent-hover: #a32d49;
+  --accent-dark: #541326;
+  --accent-soft: #29171d;
+  --accent-border: #a32d49;
+  --accent-light: #d98198;
+
+  --button: #292929;
+  --button-hover: #383838;
+  --button-border: #484848;
 }
 
-* { box-sizing: border-box; }
+/* ==================================================
+   CONFIGURAÇÕES GERAIS
+   ================================================== */
+
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
@@ -18,14 +41,29 @@ body {
   font: 15px system-ui, Arial, sans-serif;
 }
 
-button, input { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .5; cursor: wait; }
+button,
+input {
+  font: inherit;
+}
 
-button:focus-visible, input:focus-visible {
-  outline: 2px solid var(--accent);
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: wait;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--accent-light);
   outline-offset: 2px;
 }
+
+/* ==================================================
+   ESTRUTURA PRINCIPAL
+   ================================================== */
 
 .shell {
   max-width: 1120px;
@@ -40,6 +78,10 @@ button:focus-visible, input:focus-visible {
   padding: 8px 0 20px;
 }
 
+/* ==================================================
+   LOGOTIPO E IDENTIDADE
+   ================================================== */
+
 .logo-seg-corp {
   width: 80px;
   height: 80px;
@@ -48,9 +90,10 @@ button:focus-visible, input:focus-visible {
 }
 
 .brand {
-  font-size: 25px;
-  letter-spacing: 2px;
+  font-size: 28px;
+  letter-spacing: 3px;
   font-weight: 800;
+  color: var(--text);
 }
 
 .subtitle {
@@ -58,9 +101,16 @@ button:focus-visible, input:focus-visible {
   color: var(--muted);
 }
 
+/* ==================================================
+   LAYOUT
+   ================================================== */
+
 .layout {
   display: grid;
-  grid-template-columns: minmax(310px,390px) minmax(0,1fr);
+  grid-template-columns:
+    minmax(310px, 390px)
+    minmax(0, 1fr);
+
   gap: 16px;
   align-items: start;
 }
@@ -77,6 +127,10 @@ h2 {
   font-size: 17px;
   margin: 0 0 14px;
 }
+
+/* ==================================================
+   CAMPOS DE PESQUISA
+   ================================================== */
 
 .field {
   position: relative;
@@ -97,9 +151,27 @@ h2 {
   background: var(--field);
   color: var(--text);
   padding: 13px;
+
+  transition:
+    border-color .2s,
+    box-shadow .2s;
 }
 
-.actions, .route-tools {
+.field input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px #801d3526;
+}
+
+.field input::placeholder {
+  color: #858585;
+}
+
+/* ==================================================
+   BOTÕES
+   ================================================== */
+
+.actions,
+.route-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -110,32 +182,46 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #26394b;
-  border: 1px solid #526b82;
+
+  background: var(--button);
+  border: 1px solid var(--button-border);
   border-radius: 10px;
+
   color: var(--text);
   padding: 11px 13px;
-  transition: background .2s, transform .2s;
+
+  transition:
+    background .2s,
+    border-color .2s,
+    transform .2s;
 }
 
 .btn:hover:not(:disabled) {
-  background: #344f66;
+  background: var(--button-hover);
+  border-color: #606060;
 }
 
 .btn:active:not(:disabled) {
   transform: scale(.98);
 }
 
+/* Botão Buscar rotas */
+
 .btn.primary {
-  background: #547c9c;
-  border-color: #729aba;
-  color: white;
+  background: var(--accent);
+  border-color: var(--accent-border);
+  color: #ffffff;
   font-weight: 700;
   flex: 1;
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: #648eaf;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn.primary:active:not(:disabled) {
+  background: var(--accent-dark);
 }
 
 .btn.small {
@@ -150,36 +236,55 @@ h2 {
   stroke-width: 2;
 }
 
+/* ==================================================
+   SUGESTÕES DE ENDEREÇOS
+   ================================================== */
+
 .suggest {
   position: absolute;
   z-index: 1000;
+
   top: 100%;
   left: 0;
   right: 0;
-  background: #202d39;
-  border: 1px solid #526b82;
+
+  background: var(--field);
+  border: 1px solid var(--line);
   border-radius: 10px;
+
   max-height: 260px;
   overflow: auto;
+
   box-shadow: 0 10px 20px #0008;
 }
 
-.suggest[hidden] { display: none; }
+.suggest[hidden] {
+  display: none;
+}
 
 .suggest button {
   display: block;
   text-align: left;
   width: 100%;
+
   padding: 11px;
+
   border: 0;
   border-bottom: 1px solid var(--line);
+
   background: transparent;
-  color: white;
+  color: var(--text);
+
+  transition: background .2s;
+}
+
+.suggest button:last-child {
+  border-bottom: none;
 }
 
 .suggest button:hover,
 .suggest button:focus {
-  background: #334b60;
+  background: var(--accent-soft);
 }
 
 .suggest small {
@@ -188,6 +293,10 @@ h2 {
   margin-top: 4px;
 }
 
+/* ==================================================
+   MENSAGENS DE STATUS
+   ================================================== */
+
 .status {
   min-height: 25px;
   font-size: 13px;
@@ -195,20 +304,42 @@ h2 {
   line-height: 1.5;
 }
 
+/* ==================================================
+   CARTÕES DE ROTAS
+   ================================================== */
+
 .route {
   width: 100%;
   text-align: left;
-  background: #111b25;
-  color: white;
+
+  background: #202020;
+  color: var(--text);
+
   border: 1px solid var(--line);
   border-radius: 10px;
+
   padding: 12px;
   margin-bottom: 9px;
+
+  transition:
+    background .2s,
+    border-color .2s;
 }
 
+.route:hover:not(:disabled) {
+  background: #292929;
+  border-color: var(--accent-border);
+}
+
+/* Rota selecionada */
+
 .route.active {
-  border: 2px solid var(--accent);
-  background: #203246;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-soft);
+}
+
+.route.active:hover:not(:disabled) {
+  background: #351c25;
 }
 
 .route small {
@@ -218,27 +349,58 @@ h2 {
   line-height: 1.5;
 }
 
-.route-tools { margin-bottom: 14px; }
+/* ==================================================
+   AÇÕES DAS ROTAS
+   ================================================== */
+
+.route-tools {
+  margin-bottom: 14px;
+}
 
 .route-tools .btn {
   min-height: 38px;
 }
 
+/* Botão Seguir por esta rota */
+
 .route-tools .navigate {
-  background: #547c9c;
-  border-color: #729aba;
+  background: var(--accent);
+  border-color: var(--accent-border);
+  color: #ffffff;
   font-weight: 700;
 }
 
-.empty, .notice {
+.route-tools .navigate:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.route-tools .navigate:active:not(:disabled) {
+  background: var(--accent-dark);
+}
+
+/* ==================================================
+   AVISOS E INFORMAÇÕES
+   ================================================== */
+
+.empty,
+.notice {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.notice { font-size: 12px; }
+.notice {
+  font-size: 12px;
+}
 
-.map-panel { padding: 10px; }
+/* ==================================================
+   MAPA INTERATIVO
+   ================================================== */
+
+.map-panel {
+  padding: 10px;
+}
 
 .map-header {
   display: flex;
@@ -248,19 +410,25 @@ h2 {
 }
 
 #map {
-  height: min(75vh,720px);
+  height: min(75vh, 720px);
   min-height: 430px;
   border-radius: 12px;
-  background: #25313d;
+  background: #252525;
 }
 
-.leaflet-container { font: inherit; }
+.leaflet-container {
+  font: inherit;
+}
 
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #1b2835;
-  color: white;
+  background: var(--panel);
+  color: var(--text);
 }
+
+/* ==================================================
+   RODAPÉ
+   ================================================== */
 
 .foot {
   font-size: 11px;
@@ -269,12 +437,22 @@ h2 {
   margin-top: 16px;
 }
 
+/* ==================================================
+   CONTADOR DE ROTAS
+   ================================================== */
+
 .badge {
   font-size: 12px;
-  background: #26394b;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-border);
+  color: var(--text);
   padding: 5px 9px;
   border-radius: 20px;
 }
+
+/* ==================================================
+   INDICADORES DE CORES DAS ROTAS
+   ================================================== */
 
 .dot {
   display: inline-block;
@@ -284,71 +462,57 @@ h2 {
   margin-right: 7px;
 }
 
-a { color: #a8d3ff; }
-
-@media(max-width:760px) {
-  .layout { grid-template-columns: 1fr; }
-  .shell { padding: 12px; }
-  #map { height: 440px; min-height: 360px; }
-}
-
-.btn {
-  background: #292929;
-  border-color: #484848;
-}
-
-.btn:hover:not(:disabled) {
-  background: #383838;
-}
-
-.btn.primary,
-.route-tools .navigate {
-  background: #c49a50;
-  border-color: #c49a50;
-  color: #0d0d0d;
-  font-weight: 700;
-}
-
-.btn.primary:hover:not(:disabled) {
-  background: #d5ad65;
-}
-
-.suggest {
-  background: #252525;
-  border-color: #404040;
-}
-
-.suggest button:hover,
-.suggest button:focus {
-  background: #383838;
-}
-
-.route {
-  background: #202020;
-}
-
-.route.active {
-  border-color: var(--accent);
-  background: #2c271e;
-}
-
-.badge {
-  background: #303030;
-}
-
-.leaflet-popup-content-wrapper,
-.leaflet-popup-tip {
-  background: #191919;
-  color: #f5f5f5;
-}
+/* ==================================================
+   LINKS
+   ================================================== */
 
 a {
-  color: var(--accent);
+  color: var(--accent-light);
+  transition: color .2s;
 }
 
-.brand {
-  font-size: 28px;
-  letter-spacing: 3px;
-  font-weight: 800;
+a:hover {
+  color: #f0a5b8;
 }
 
+/* ==================================================
+   BARRA DE ROLAGEM
+   ================================================== */
+
+.suggest::-webkit-scrollbar {
+  width: 7px;
+}
+
+.suggest::-webkit-scrollbar-track {
+  background: var(--panel);
+}
+
+.suggest::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 10px;
+}
+
+.suggest::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover);
+}
+
+/* ==================================================
+   RESPONSIVIDADE
+   ================================================== */
+
+@media (max-width: 760px) {
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shell {
+    padding: 12px;
+  }
+
+  #map {
+    height: 440px;
+    min-height: 360px;
+  }
+
+}
