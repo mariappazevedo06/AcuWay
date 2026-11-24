@@ -885,27 +885,34 @@ function diferencaRotas(a, b) {
 
 function rotaTemRetornoOuLaco(rota) {
 
-  const legs = rota.legs || [];
+  const coords = rota.geometry?.coordinates || [];
 
-  for (const leg of legs) {
+  if (coords.length < 2) return false;
+
+  const segmentos = new Set();
+
+  let distanciaRepetida = 0;
+
+  // Identifica retornos explícitos.
+  for (const leg of rota.legs || []) {
 
     for (const step of leg.steps || []) {
 
-      const tipo =
-        step.maneuver?.type;
-
-      const modificador =
-        step.maneuver?.modifier;
+      const tipo = step.maneuver?.type || '';
+      const modificador = step.maneuver?.modifier || '';
 
       if (
-
         modificador === 'uturn' &&
-
         tipo !== 'depart' &&
-
-        tipo !== 'arrive'
-
+        tipo !== 'arrive' &&
+        step.distance > 300
       ) {
+
+        console.log(
+          'Retorno explícito identificado:',
+          step.name,
+          step.distance
+        );
 
         return true;
 
@@ -915,12 +922,8 @@ function rotaTemRetornoOuLaco(rota) {
 
   }
 
-  const coords =
-    rota.geometry?.coordinates || [];
-
-  const segmentos = new Set();
-
-  let distanciaRepetida = 0;
+  // Identifica segmentos percorridos
+  // novamente no sentido contrário.
 
   function chave(p) {
 
@@ -934,28 +937,22 @@ function rotaTemRetornoOuLaco(rota) {
     const a = coords[i - 1];
     const b = coords[i];
 
-    const ida =
-      chave(a) + '|' + chave(b);
-
-    const volta =
-      chave(b) + '|' + chave(a);
+    const ida = chave(a) + '|' + chave(b);
+    const volta = chave(b) + '|' + chave(a);
 
     if (ida === volta) continue;
 
     if (segmentos.has(volta)) {
 
       distanciaRepetida += distanciaMetros(
-
         {
           lat: a[1],
           lon: a[0]
         },
-
         {
           lat: b[1],
           lon: b[0]
         }
-
       );
 
     }
@@ -964,52 +961,28 @@ function rotaTemRetornoOuLaco(rota) {
 
   }
 
-  if (distanciaRepetida > 50) {
+  // Tolera pequenas repetições, mas rejeita
+  // retornos significativos no percurso.
 
-    return true;
-
-  }
-
-  // Verifica laços na geometria completa.
-
-  const pontos = amostrarTrajeto(
-    rota,
-    50,
-    1200
+  const limite = Math.min(
+    300,
+    Math.max(100, rota.distance * 0.005)
   );
 
-  for (let i = 0; i < pontos.length; i++) {
+  if (distanciaRepetida > limite) {
 
-    for (
-      let j = i + 1;
-      j < pontos.length;
-      j++
-    ) {
+    console.log(
+      'Retorno real identificado:',
+      distanciaRepetida.toFixed(2) + ' metros'
+    );
 
-      const percorrido =
-        pontos[j].d - pontos[i].d;
-
-      if (percorrido < 500) continue;
-
-      const direta = distanciaMetros(
-        pontos[i],
-        pontos[j]
-      );
-
-      if (direta < 40) {
-
-        return true;
-
-      }
-
-    }
+    return true;
 
   }
 
   return false;
 
 }
-
 // ==================================================
 // COMUNICAÇÃO COM OSRM
 // ==================================================
