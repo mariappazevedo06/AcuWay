@@ -1,1 +1,286 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0f14;
+  --panel: #161d25;
+  --field: #101820;
+  --line: #354454;
+  --text: #f1f5f9;
+  --muted: #acbac8;
+  --accent: #8ab4d8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 15px system-ui, Arial, sans-serif;
+}
+
+button, input { font: inherit; }
+button { cursor: pointer; }
+button:disabled { opacity: .5; cursor: wait; }
+
+button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.shell {
+  max-width: 1120px;
+  margin: auto;
+  padding: 16px;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  padding: 8px 0 18px;
+}
+
+.brand {
+  font-size: 25px;
+  letter-spacing: 2px;
+  font-weight: 800;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(310px,390px) minmax(0,1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 17px;
+  margin: 0 0 14px;
+}
+
+.field {
+  position: relative;
+  margin-bottom: 13px;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--field);
+  color: var(--text);
+  padding: 13px;
+}
+
+.actions, .route-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #26394b;
+  border: 1px solid #526b82;
+  border-radius: 10px;
+  color: var(--text);
+  padding: 11px 13px;
+  transition: background .2s, transform .2s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #344f66;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(.98);
+}
+
+.btn.primary {
+  background: #547c9c;
+  border-color: #729aba;
+  color: white;
+  font-weight: 700;
+  flex: 1;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #648eaf;
+}
+
+.btn.small {
+  padding: 9px 11px;
+  font-size: 12px;
+}
+
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  stroke-width: 2;
+}
+
+.suggest {
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #202d39;
+  border: 1px solid #526b82;
+  border-radius: 10px;
+  max-height: 260px;
+  overflow: auto;
+  box-shadow: 0 10px 20px #0008;
+}
+
+.suggest[hidden] { display: none; }
+
+.suggest button {
+  display: block;
+  text-align: left;
+  width: 100%;
+  padding: 11px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: white;
+}
+
+.suggest button:hover,
+.suggest button:focus {
+  background: #334b60;
+}
+
+.suggest small {
+  display: block;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.status {
+  min-height: 25px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.route {
+  width: 100%;
+  text-align: left;
+  background: #111b25;
+  color: white;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 9px;
+}
+
+.route.active {
+  border: 2px solid var(--accent);
+  background: #203246;
+}
+
+.route small {
+  display: block;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.route-tools { margin-bottom: 14px; }
+
+.route-tools .btn {
+  min-height: 38px;
+}
+
+.route-tools .navigate {
+  background: #547c9c;
+  border-color: #729aba;
+  font-weight: 700;
+}
+
+.empty, .notice {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notice { font-size: 12px; }
+
+.map-panel { padding: 10px; }
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 6px 12px;
+}
+
+#map {
+  height: min(75vh,720px);
+  min-height: 430px;
+  border-radius: 12px;
+  background: #25313d;
+}
+
+.leaflet-container { font: inherit; }
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #1b2835;
+  color: white;
+}
+
+.foot {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 16px;
+}
+
+.badge {
+  font-size: 12px;
+  background: #26394b;
+  padding: 5px 9px;
+  border-radius: 20px;
+}
+
+.dot {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  margin-right: 7px;
+}
+
+a { color: #a8d3ff; }
+
+@media(max-width:760px) {
+  .layout { grid-template-columns: 1fr; }
+  .shell { padding: 12px; }
+  #map { height: 440px; min-height: 360px; }
+}
 
