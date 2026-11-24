@@ -19,10 +19,12 @@ const colors = [
 ];
 
 const ROUTE_CONFIG = {
-  maxRotas: 20,
-  maxConsultasExtras: 16,
+  maxRotas: 10,
+  maxConsultasExtras: 12,
   desvioMaximo: 1.8,
-  timeout: 15000
+  timeout: 15000,
+  toleranciaDuplicidade: 100,
+  diferencaMinima: 0.08
 };
 
 function atualizarIcones() {
@@ -456,87 +458,152 @@ function distanciaMetros(a, b) {
 
 function selecionarPontosPassagem(rota, limite = 3) {
 
-  const amostra = amostrarTrajeto(rota);
-
-  const total = amostra.at(-1)?.d || 0;
-
-  const margem = Math.min(
-    300,
-    total * 0.08
-  );
+  const candidatos = [];
+  let acumulado = 0;
 
   const outras = state.rotas.filter(
     r => r !== rota
   );
 
-  const candidatos = amostra.filter(
-    p => p.d > margem &&
-         p.d < total - margem
-  );
+  for (const leg of rota.legs || []) {
+
+    for (const step of leg.steps || []) {
+
+      const distancia = step.distance || 0;
+      const coords = step.geometry?.coordinates || [];
+
+      const nome = (step.name || '').trim();
+      const ref = (step.ref || '').trim();
+
+      // Prioriza vias identificadas e trechos contínuos.
+      if (
+        distancia >= 300 &&
+        coords.length >= 2 &&
+        (nome || ref)
+      ) {
+
+        const amostra = amostrarTrajeto({
+          geometry: step.geometry
+        });
+
+        const meio = amostra[
+          Math.floor(amostra.length / 2)
+        ];
+
+        const posicao = acumulado + distancia / 2;
+
+        const margem = Math.min(
+          300,
+          rota.distance * 0.1
+        );
+
+        if (
+          meio &&
+          posicao > margem &&
+          posicao < rota.distance - margem
+        ) {
+
+          candidatos.push({
+            lat: meio.lat,
+            lon: meio.lon,
+            d: posicao,
+            nome: ref || nome,
+            rodovia: Boolean(ref)
+          });
+
+        }
+
+      }
+
+      acumulado += distancia;
+
+    }
+
+  }
 
   const escolhidos = [];
   const restantes = new Set(outras);
 
-  const separacao = Math.min(
-    1000,
-    total / 5
-  );
+  // Calcula quais rotas cada ponto ajuda a diferenciar.
+  for (const p of candidatos) {
 
-  for (let i = 0; i < limite; i++) {
+    p.distancias = outras.map(r => ({
+      rota: r,
+      distancia: distanciaAteRota(p, r)
+    }));
+
+  }
+
+  while (
+    escolhidos.length < limite &&
+    restantes.size > 0
+  ) {
 
     let melhor = null;
-    let nota = -Infinity;
+    let melhorNota = -Infinity;
 
     for (const p of candidatos) {
 
       if (
         escolhidos.some(
-          q => Math.abs(q.d - p.d) < separacao
+          q => Math.abs(q.d - p.d) < 500
         )
       ) {
         continue;
       }
 
-      const distingue = [...restantes].filter(
-        r => distanciaAteRota(p, r) > 100
+      const distintas = p.distancias.filter(
+        item =>
+          restantes.has(item.rota) &&
+          item.distancia > 100
       );
 
-      const distanciaMinima = outras.length
-        ? Math.min(
-            ...outras.map(
-              r => distanciaAteRota(p, r)
-            )
-          )
-        : 0;
+      if (!distintas.length) continue;
 
-      const distribuicao = escolhidos.length
-        ? Math.min(
-            ...escolhidos.map(
-              q => Math.abs(q.d - p.d)
-            )
-          )
-        : Math.min(p.d, total - p.d);
+      const nota =
+        distintas.length * 10000 +
+        (p.rodovia ? 500 : 0) +
+        distintas.reduce(
+          (soma, item) =>
+            soma + Math.min(item.distancia, 2000),
+          0
+        );
 
-      const pontuacao =
-        distingue.length * 10000 +
-        Math.min(distanciaMinima, 5000) +
-        distribuicao / Math.max(total, 1) * 1000;
+      if (nota > melhorNota) {
 
-      if (pontuacao > nota) {
-        nota = pontuacao;
+        melhorNota = nota;
         melhor = p;
+
       }
+
     }
 
     if (!melhor) break;
 
     escolhidos.push(melhor);
 
-    for (const r of restantes) {
-      if (distanciaAteRota(melhor, r) > 100) {
-        restantes.delete(r);
+    for (const item of melhor.distancias) {
+
+      if (item.distancia > 100) {
+        restantes.delete(item.rota);
       }
+
     }
+
+  }
+
+  // Caso nenhum ponto distintivo seja encontrado,
+  // utiliza um ponto intermediário de uma via identificada.
+  if (!escolhidos.length && candidatos.length) {
+
+    candidatos.sort(
+      (a, b) =>
+        Math.abs(a.d - rota.distance / 2) -
+        Math.abs(b.d - rota.distance / 2)
+    );
+
+    escolhidos.push(candidatos[0]);
+
   }
 
   return escolhidos
@@ -784,20 +851,23 @@ function pontoIntermediario(a, b, t, deslocamento) {
 }
 
 function gerarPontosAlternativos(origem, destino) {
+
   const distancia = distanciaMetros(origem, destino);
 
   const deslocamento = Math.min(
-    15000,
-    Math.max(900, distancia * 0.15)
+    5000,
+    Math.max(400, distancia * 0.08)
   );
 
   const pontos = [];
 
-  const posicoes = [0.2, 0.4, 0.6, 0.8];
+  const posicoes = [0.25, 0.50, 0.75];
   const fatores = [1, 2];
 
   for (const fator of fatores) {
+
     for (const t of posicoes) {
+
       for (const lado of [1, -1]) {
 
         pontos.push(
@@ -810,7 +880,9 @@ function gerarPontosAlternativos(origem, destino) {
         );
 
       }
+
     }
+
   }
 
   return pontos.slice(
@@ -833,17 +905,20 @@ async function consultarOSRM(pontos, alternativas = false) {
   url.searchParams.set('geometries', 'geojson');
   url.searchParams.set('alternatives', String(alternativas));
   url.searchParams.set('steps', 'true');
+  url.searchParams.set('continue_straight', 'true');
 
-  if (pontos.length > 2) {
-    url.searchParams.set(
-      'radiuses',
-      pontos.map((_, idx) =>
-        (idx === 0 || idx === pontos.length - 1)
-          ? 'unlimited'
-          : '2500'
-      ).join(';')
-    );
-  }
+if (pontos.length > 2) {
+
+  url.searchParams.set(
+    'radiuses',
+    pontos.map((_, idx) =>
+      (idx === 0 || idx === pontos.length - 1)
+        ? 'unlimited'
+        : '800'
+    ).join(';')
+  );
+
+}
 
   const controller = new AbortController();
 
@@ -986,8 +1061,9 @@ function rotaTemRetornoOuLaco(rota) {
 
   const legs = rota.legs || [];
 
-  // Identifica manobras de retorno internas
+  // Identifica manobras de retorno.
   for (const leg of legs) {
+
     for (const step of leg.steps || []) {
 
       const tipo = step.maneuver?.type;
@@ -1002,30 +1078,70 @@ function rotaTemRetornoOuLaco(rota) {
       }
 
     }
+
   }
 
-  // Analisa retornos na geometria completa
+  // Identifica segmentos percorridos
+  // novamente no sentido contrário.
+
+  const coords = rota.geometry.coordinates;
+  const segmentos = new Set();
+
+  let distanciaRepetida = 0;
+
+  function chave(p) {
+    return p[0].toFixed(5) + ',' +
+           p[1].toFixed(5);
+  }
+
+  for (let i = 1; i < coords.length; i++) {
+
+    const a = coords[i - 1];
+    const b = coords[i];
+
+    const ida = chave(a) + '|' + chave(b);
+    const volta = chave(b) + '|' + chave(a);
+
+    if (ida === volta) continue;
+
+    if (segmentos.has(volta)) {
+
+      distanciaRepetida += distanciaMetros(
+        { lat: a[1], lon: a[0] },
+        { lat: b[1], lon: b[0] }
+      );
+
+    }
+
+    segmentos.add(ida);
+
+  }
+
+  // Descarta retornos acumulados acima de 50 metros.
+  if (distanciaRepetida > 50) {
+    return true;
+  }
+
+  // Identifica possíveis laços maiores.
   const pontos = amostrarTrajeto(rota);
 
   for (let i = 0; i < pontos.length; i++) {
 
     for (let j = i + 1; j < pontos.length; j++) {
 
-      const distanciaPercorrida =
+      const percorrido =
         pontos[j].d - pontos[i].d;
 
-      if (distanciaPercorrida < 600) {
-        continue;
-      }
+      if (percorrido < 500) continue;
 
-      const distanciaDireta = distanciaMetros(
+      const direta = distanciaMetros(
         pontos[i],
         pontos[j]
       );
 
       if (
-        distanciaDireta < 60 &&
-        distanciaPercorrida > 600
+        direta < 40 &&
+        percorrido > 500
       ) {
         return true;
       }
@@ -1050,19 +1166,48 @@ function adicionarRotaUnica(
   }
 
   if (
-    lista.length &&
-    rotaTemRetornoOuLaco(candidata)
+    !Number.isFinite(candidata.distance) ||
+    candidata.distance <= 0
   ) {
     return false;
   }
 
   if (
-    candidata.distance >
-    distanciaPrincipal * ROUTE_CONFIG.desvioMaximo
+    lista.length >= ROUTE_CONFIG.maxRotas
   ) {
     return false;
   }
 
+  // Preserva a primeira rota nativa do OSRM.
+  if (!lista.length) {
+    lista.push(candidata);
+    return true;
+  }
+
+  // Descarta retornos e laços.
+  if (rotaTemRetornoOuLaco(candidata)) {
+
+    console.log(
+      'Rota descartada: retorno ou laço.'
+    );
+
+    return false;
+  }
+
+  // Descarta desvios excessivos.
+  if (
+    candidata.distance >
+    distanciaPrincipal * ROUTE_CONFIG.desvioMaximo
+  ) {
+
+    console.log(
+      'Rota descartada: distância excessiva.'
+    );
+
+    return false;
+  }
+
+  // Verifica se o trajeto é realmente diferente.
   for (const existente of lista) {
 
     const diferencaAB =
@@ -1072,18 +1217,23 @@ function adicionarRotaUnica(
       diferencaRotas(existente, candidata);
 
     if (
-      diferencaAB < 0.03 &&
-      diferencaBA < 0.03
+      diferencaAB < ROUTE_CONFIG.diferencaMinima &&
+      diferencaBA < ROUTE_CONFIG.diferencaMinima
     ) {
+
+      console.log(
+        'Rota descartada: trajeto semelhante.'
+      );
+
       return false;
     }
+
   }
 
   lista.push(candidata);
 
   return true;
 }
-
 // BUSCA PRINCIPAL
 
 async function route() {
