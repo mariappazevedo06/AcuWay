@@ -1,12 +1,12 @@
 :root {
   color-scheme: dark;
-  --bg: #0b0f14;
-  --panel: #161d25;
-  --field: #101820;
-  --line: #354454;
-  --text: #f1f5f9;
-  --muted: #acbac8;
-  --accent: #8ab4d8;
+  --bg: #0d0d0d;
+  --panel: #191919;
+  --field: #252525;
+  --line: #404040;
+  --text: #f5f5f5;
+  --muted: #b0b0b0;
+  --accent: #c49a50;
 }
 
 * { box-sizing: border-box; }
@@ -290,5 +290,65 @@ a { color: #a8d3ff; }
   .layout { grid-template-columns: 1fr; }
   .shell { padding: 12px; }
   #map { height: 440px; min-height: 360px; }
+}
+
+.btn {
+  background: #292929;
+  border-color: #484848;
+}
+
+.btn:hover:not(:disabled) {
+  background: #383838;
+}
+
+.btn.primary,
+.route-tools .navigate {
+  background: #c49a50;
+  border-color: #c49a50;
+  color: #0d0d0d;
+  font-weight: 700;
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #d5ad65;
+}
+
+.suggest {
+  background: #252525;
+  border-color: #404040;
+}
+
+.suggest button:hover,
+.suggest button:focus {
+  background: #383838;
+}
+
+.route {
+  background: #202020;
+}
+
+.route.active {
+  border-color: var(--accent);
+  background: #2c271e;
+}
+
+.badge {
+  background: #303030;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #191919;
+  color: #f5f5f5;
+}
+
+a {
+  color: var(--accent);
+}
+
+.brand {
+  font-size: 28px;
+  letter-spacing: 3px;
+  font-weight: 800;
 }
 
