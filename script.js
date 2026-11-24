@@ -69,6 +69,7 @@ function fmtTime(s) {
 
 function invalidate() {
   state.request++;
+  $('buscar').disabled = false;
   state.rotas = [];
   state.selecionada = 0;
   routeLayer.clearLayers();
@@ -453,44 +454,102 @@ function distanciaMetros(a, b) {
 // Baseada nos trechos retornados pelo OSRM.
 // Evita forçar pontos próximos às manobras e em vias sem nome.
 
-function selecionarPontosPassagem(rota, limite = 2) {
-  const coordenadas = rota.geometry?.coordinates || [];
-  if (coordenadas.length < 3 || limite < 1) return [];
+function selecionarPontosPassagem(rota, limite = 3) {
 
-  const candidatos = [];
+  const amostra = amostrarTrajeto(rota);
 
-  for (const leg of rota.legs || []) {
-    for (const step of leg.steps || []) {
-      if (!step.geometry?.coordinates?.length) continue;
-      if ((step.distance || 0) < 4000) continue; // Apenas trechos longos (>= 4 km)
+  const total = amostra.at(-1)?.d || 0;
 
-      const nome = (step.name || '').trim();
-      const ref = (step.ref || '').trim();
-      if (!nome && !ref) continue;
+  const margem = Math.min(
+    300,
+    total * 0.08
+  );
 
-      const pontos = step.geometry.coordinates;
-      const meio = pontos[Math.floor(pontos.length / 2)];
+  const outras = state.rotas.filter(
+    r => r !== rota
+  );
 
-      candidatos.push({
-        lat: meio[1],
-        lon: meio[0],
-        distancia: step.distance,
-        prioridade: ref ? 2 : 1 // Prioriza rodovias identificadas (BR/RJ)
-      });
+  const candidatos = amostra.filter(
+    p => p.d > margem &&
+         p.d < total - margem
+  );
+
+  const escolhidos = [];
+  const restantes = new Set(outras);
+
+  const separacao = Math.min(
+    1000,
+    total / 5
+  );
+
+  for (let i = 0; i < limite; i++) {
+
+    let melhor = null;
+    let nota = -Infinity;
+
+    for (const p of candidatos) {
+
+      if (
+        escolhidos.some(
+          q => Math.abs(q.d - p.d) < separacao
+        )
+      ) {
+        continue;
+      }
+
+      const distingue = [...restantes].filter(
+        r => distanciaAteRota(p, r) > 100
+      );
+
+      const distanciaMinima = outras.length
+        ? Math.min(
+            ...outras.map(
+              r => distanciaAteRota(p, r)
+            )
+          )
+        : 0;
+
+      const distribuicao = escolhidos.length
+        ? Math.min(
+            ...escolhidos.map(
+              q => Math.abs(q.d - p.d)
+            )
+          )
+        : Math.min(p.d, total - p.d);
+
+      const pontuacao =
+        distingue.length * 10000 +
+        Math.min(distanciaMinima, 5000) +
+        distribuicao / Math.max(total, 1) * 1000;
+
+      if (pontuacao > nota) {
+        nota = pontuacao;
+        melhor = p;
+      }
+    }
+
+    if (!melhor) break;
+
+    escolhidos.push(melhor);
+
+    for (const r of restantes) {
+      if (distanciaAteRota(melhor, r) > 100) {
+        restantes.delete(r);
+      }
     }
   }
 
-  if (!candidatos.length) return [];
-
-  // Ordena priorizando rodovias (ref) e trechos mais longos
-  candidatos.sort((a, b) => (b.prioridade - a.prioridade) || (b.distancia - a.distancia));
-
-  const quantidade = Math.min(limite, candidatos.length, rota.distance > 50000 ? 2 : 1);
-  return candidatos.slice(0, quantidade).map(p => ({ lat: p.lat, lon: p.lon }));
+  return escolhidos
+    .sort((a, b) => a.d - b.d)
+    .map(p => ({
+      lat: p.lat,
+      lon: p.lon
+    }));
 }
 // GERAÇÃO DO LINK DO GOOGLE MAPS
 
 function googleLink(rota, usarPontos = true) {
+
   const url = new URL(
     'https://www.google.com/maps/dir/'
   );
@@ -499,28 +558,27 @@ function googleLink(rota, usarPontos = true) {
 
   url.searchParams.set(
     'origin',
-    state.origem.lat + ',' + state.origem.lon
+    state.origem.lat + ',' +
+    state.origem.lon
   );
 
   url.searchParams.set(
     'destination',
-    state.destino.lat + ',' + state.destino.lon
+    state.destino.lat + ',' +
+    state.destino.lon
   );
 
-  url.searchParams.set('travelmode', 'driving');
-
-  const navegadorMovel =
-    /Android|iPhone|iPad|iPod/i.test(
-      navigator.userAgent
-    );
-
-  const limite = navegadorMovel ? 3 : 3;
+  url.searchParams.set(
+    'travelmode',
+    'driving'
+  );
 
   const pontos = usarPontos
-    ? selecionarPontosPassagem(rota, limite)
+    ? selecionarPontosPassagem(rota, 3)
     : [];
 
   if (pontos.length) {
+
     url.searchParams.set(
       'waypoints',
       pontos.map(p =>
@@ -528,6 +586,7 @@ function googleLink(rota, usarPontos = true) {
         p.lon.toFixed(6)
       ).join('|')
     );
+
   }
 
   console.log(
@@ -759,67 +818,200 @@ function gerarPontosAlternativos(origem, destino) {
     ROUTE_CONFIG.maxConsultasExtras
   );
 }
-function amostrarTrajeto(rota) {
-  const coords = rota.geometry.coordinates;
-  const resultado = [];
-  const total = 24;
 
-  for (let i = 0; i <= total; i++) {
-    const indice = Math.floor(
-      (coords.length - 1) * i / total
+async function consultarOSRM(pontos, alternativas = false) {
+  const coordenadas = pontos
+    .map(p => `${p.lon},${p.lat}`)
+    .join(';');
+
+  const url = new URL(
+    'https://router.project-osrm.org/route/v1/driving/' +
+    coordenadas
+  );
+
+  url.searchParams.set('overview', 'full');
+  url.searchParams.set('geometries', 'geojson');
+  url.searchParams.set('alternatives', String(alternativas));
+  url.searchParams.set('steps', 'true');
+
+  if (pontos.length > 2) {
+    url.searchParams.set(
+      'radiuses',
+      pontos.map((_, idx) =>
+        (idx === 0 || idx === pontos.length - 1)
+          ? 'unlimited'
+          : '2500'
+      ).join(';')
     );
-
-    resultado.push(coords[indice]);
   }
 
-  return resultado;
+  const controller = new AbortController();
+
+  const timer = setTimeout(
+    () => controller.abort(),
+    ROUTE_CONFIG.timeout
+  );
+
+  try {
+    const resposta = await fetch(url, {
+      signal: controller.signal
+    });
+
+    if (!resposta.ok) {
+      throw new Error(
+        'OSRM retornou HTTP ' + resposta.status
+      );
+    }
+
+    const dados = await resposta.json();
+
+    if (dados.code !== 'Ok') return [];
+
+    return (dados.routes || []).filter(
+      rota =>
+        rota.geometry?.coordinates?.length > 1
+    );
+
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
+function amostrarTrajeto(rota) {
+  const coords = rota.geometry.coordinates;
+  const acumulado = [0];
+
+  for (let i = 1; i < coords.length; i++) {
+    acumulado.push(
+      acumulado[i - 1] + distanciaMetros(
+        {
+          lat: coords[i - 1][1],
+          lon: coords[i - 1][0]
+        },
+        {
+          lat: coords[i][1],
+          lon: coords[i][0]
+        }
+      )
+    );
+  }
+
+  const total = acumulado.at(-1);
+
+  const n = Math.min(
+    300,
+    Math.max(2, Math.ceil(total / 150))
+  );
+
+  const pontos = [];
+  let j = 1;
+
+  for (let i = 0; i <= n; i++) {
+    const d = total * i / n;
+
+    while (
+      j < coords.length - 1 &&
+      acumulado[j] < d
+    ) {
+      j++;
+    }
+
+    const t =
+      (d - acumulado[j - 1]) /
+      (acumulado[j] - acumulado[j - 1] || 1);
+
+    pontos.push({
+      lon: coords[j - 1][0] +
+        t * (coords[j][0] - coords[j - 1][0]),
+
+      lat: coords[j - 1][1] +
+        t * (coords[j][1] - coords[j - 1][1]),
+
+      d
+    });
+  }
+
+  return pontos;
+}
+
+function distanciaAteRota(p, rota) {
+  const c = rota.geometry.coordinates;
+
+  const k =
+    111320 * Math.cos(p.lat * Math.PI / 180);
+
+  let menor = Infinity;
+
+  for (let i = 1; i < c.length; i++) {
+    const ax = (c[i - 1][0] - p.lon) * k;
+    const ay = (c[i - 1][1] - p.lat) * 111320;
+
+    const bx = (c[i][0] - p.lon) * k;
+    const by = (c[i][1] - p.lat) * 111320;
+
+    const dx = bx - ax;
+    const dy = by - ay;
+
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        -(ax * dx + ay * dy) /
+        (dx * dx + dy * dy || 1)
+      )
+    );
+
+    menor = Math.min(
+      menor,
+      Math.hypot(
+        ax + t * dx,
+        ay + t * dy
+      )
+    );
+  }
+
+  return menor;
 }
 
 function diferencaRotas(a, b) {
-  const amostraA = amostrarTrajeto(a);
-  const amostraB = amostrarTrajeto(b);
-  let diferentes = 0;
+  const pontos = amostrarTrajeto(a);
 
-  for (const ponto of amostraA) {
-    let menor = Infinity;
-
-    for (const outro of amostraB) {
-      const distancia = distanciaMetros(
-        { lat: ponto[1], lon: ponto[0] },
-        { lat: outro[1], lon: outro[0] }
-      );
-
-      menor = Math.min(menor, distancia);
-    }
-
-    if (menor > 350) diferentes++;
-  }
-
-  return diferentes / amostraA.length;
+  return pontos.filter(
+    p => distanciaAteRota(p, b) > 100
+  ).length / pontos.length;
 }
 
 function rotaTemRetornoOuLaco(rota) {
-  for (const leg of rota.legs || []) {
-    for (const step of leg.steps || []) {
-      const mod = step.maneuver?.modifier || '';
-      const tipo = step.maneuver?.type || '';
-      if (mod === 'uturn' && tipo !== 'depart' && tipo !== 'arrive') {
-        return true;
-      }
+  const legs = rota.legs || [];
+
+  for (let i = 1; i < legs.length; i++) {
+
+    const a =
+      legs[i - 1].steps?.at(-1)
+        ?.geometry?.coordinates;
+
+    const b =
+      legs[i].steps?.[0]
+        ?.geometry?.coordinates;
+
+    if (
+      !a ||
+      !b ||
+      a.length < 2 ||
+      b.length < 2
+    ) {
+      continue;
     }
-  }
 
-  const coords = rota.geometry.coordinates;
-  const passo = Math.max(1, Math.floor(coords.length / 80));
+    const p = a[a.length - 2];
+    const q = b[1];
 
-  for (let i = 0; i < coords.length; i += passo) {
-    for (let j = i + passo * 5; j < coords.length; j += passo) {
-      const dist = distanciaMetros(
-        { lat: coords[i][1], lon: coords[i][0] },
-        { lat: coords[j][1], lon: coords[j][0] }
-      );
-      // Se a rota volta a passar a menos de 400m de um ponto onde já passou antes, é um laço/desvio inútil
-      if (dist < 400) return true;
+    if (
+      p[0] === q[0] &&
+      p[1] === q[1]
+    ) {
+      return true;
     }
   }
 
@@ -831,11 +1023,18 @@ function adicionarRotaUnica(
   candidata,
   distanciaPrincipal
 ) {
-  if (!candidata?.geometry?.coordinates) {
+
+  if (
+    !candidata?.geometry?.coordinates ||
+    candidata.geometry.coordinates.length < 2
+  ) {
     return false;
   }
 
-  if (rotaTemRetornoOuLaco(candidata)) {
+  if (
+    lista.length &&
+    rotaTemRetornoOuLaco(candidata)
+  ) {
     return false;
   }
 
@@ -847,29 +1046,30 @@ function adicionarRotaUnica(
   }
 
   for (const existente of lista) {
-    const diferencaAB = diferencaRotas(
-      candidata, existente
-    );
 
-    const diferencaBA = diferencaRotas(
-      existente, candidata
-    );
+    const diferencaAB =
+      diferencaRotas(candidata, existente);
+
+    const diferencaBA =
+      diferencaRotas(existente, candidata);
 
     if (
-      diferencaAB < .25 &&
-      diferencaBA < .25
+      diferencaAB < 0.03 &&
+      diferencaBA < 0.03
     ) {
       return false;
     }
   }
 
   lista.push(candidata);
+
   return true;
 }
 
 // BUSCA PRINCIPAL
 
 async function route() {
+
   if (!state.origem || !state.destino) {
     msg('Selecione origem e destino antes de buscar.');
     return;
@@ -883,9 +1083,12 @@ async function route() {
   const origem = { ...state.origem };
   const destino = { ...state.destino };
 
+  let falhas = 0;
+
   msg('Buscando a rota principal...');
 
   try {
+
     const principais = await consultarOSRM(
       [origem, destino],
       true
@@ -901,15 +1104,19 @@ async function route() {
       (a, b) => a.duration - b.duration
     );
 
-    const distanciaPrincipal = principais[0].distance;
+    const distanciaPrincipal =
+      principais[0].distance;
+
     const encontradas = [];
 
     for (const rota of principais) {
+
       adicionarRotaUnica(
         encontradas,
         rota,
         distanciaPrincipal
       );
+
     }
 
     state.rotas = [...encontradas];
@@ -925,6 +1132,7 @@ async function route() {
     );
 
     for (let i = 0; i < pontos.length; i++) {
+
       if (id !== state.request) return;
 
       if (
@@ -939,7 +1147,14 @@ async function route() {
         '. Encontradas: ' + encontradas.length
       );
 
+      await new Promise(
+        resolve => setTimeout(resolve, 1100)
+      );
+
+      if (id !== state.request) return;
+
       try {
+
         const alternativas = await consultarOSRM(
           [origem, pontos[i], destino],
           false
@@ -948,12 +1163,17 @@ async function route() {
         if (id !== state.request) return;
 
         for (const alternativa of alternativas) {
+
           adicionarRotaUnica(
             encontradas,
             alternativa,
             distanciaPrincipal
           );
+
         }
+
+        const selecionada =
+          state.rotas[state.selecionada];
 
         encontradas.sort(
           (a, b) => a.duration - b.duration
@@ -964,27 +1184,44 @@ async function route() {
           ROUTE_CONFIG.maxRotas
         );
 
-        state.selecionada = 0;
+        state.selecionada = Math.max(
+          0,
+          state.rotas.indexOf(selecionada)
+        );
 
         draw();
         render();
 
       } catch (erro) {
+
+        falhas++;
+
         console.warn(
           'Consulta alternativa não concluída:',
           erro
         );
+
+        if (/HTTP (429|503)/.test(erro.message)) {
+          break;
+        }
+
       }
     }
 
     if (id !== state.request) return;
+
+    const selecionadaFinal =
+      state.rotas[state.selecionada];
 
     state.rotas = encontradas.slice(
       0,
       ROUTE_CONFIG.maxRotas
     );
 
-    state.selecionada = 0;
+    state.selecionada = Math.max(
+      0,
+      state.rotas.indexOf(selecionadaFinal)
+    );
 
     draw();
     render();
@@ -993,26 +1230,34 @@ async function route() {
     msg(
       'Pesquisa concluída: ' +
       state.rotas.length +
-      ' rota(s) distinta(s) encontrada(s).'
+      ' rota(s) distinta(s) encontrada(s).' +
+      (falhas
+        ? ' Algumas consultas não foram concluídas.'
+        : '')
     );
 
   } catch (erro) {
+
     if (id === state.request) {
+
       console.error(erro);
+
       msg(
         'Não foi possível calcular as rotas: ' +
         erro.message
       );
+
     }
+
   } finally {
+
     if (id === state.request) {
       botao.disabled = false;
     }
+
   }
 }
-
 $('buscar').onclick = route;
-
 // RECUPERAR PONTOS DE UM LINK ANTIGO
 
 (function restore() {
