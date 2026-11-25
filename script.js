@@ -74,9 +74,7 @@ baseMap.on('tileerror', e => {
     e.tile.src
   );
 });
-
 // Ajuste após o carregamento da página
-
 window.addEventListener('load', () => {
   map.invalidateSize({
     pan: false
@@ -153,9 +151,7 @@ function markers() {
     marker.bindPopup(popup);
   }
 }
-
 // PESQUISA DE LUGARES
-
 function normalizeFeature(f) {
   const p = f.properties || {};
   const c = f.geometry?.coordinates;
