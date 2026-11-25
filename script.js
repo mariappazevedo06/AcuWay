@@ -56,7 +56,28 @@ L.tileLayer(
 
 const routeLayer = L.layerGroup().addTo(map);
 const pointLayer = L.layerGroup().addTo(map);
+// Corrigir dimensões do mapa em dispositivos móveis
 
+const mapObserver = new ResizeObserver(() => {
+  map.invalidateSize({
+    pan: false,
+    debounceMoveend: true
+  });
+});
+
+mapObserver.observe($('map'));
+
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 300);
+});
+
+window.addEventListener('orientationchange', () => {
+  setTimeout(() => {
+    map.invalidateSize();
+  }, 300);
+});
 let drawn = [];
 
 function msg(texto) {
@@ -388,6 +409,11 @@ map.on('click', e => {
 });
 
 function bounds() {
+
+  map.invalidateSize({
+    pan: false
+  });
+
   const layers = [
     ...pointLayer.getLayers(),
     ...routeLayer.getLayers()
@@ -400,8 +426,8 @@ function bounds() {
   map.fitBounds(g.getBounds().pad(.15), {
     maxZoom: 15
   });
-}
 
+}
 $('ajustar').onclick = bounds;
 
 // DESENHO E SELEÇÃO DAS ROTAS
