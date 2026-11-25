@@ -26,7 +26,6 @@ const ROUTE_CONFIG = {
   toleranciaDuplicidade: 100,
   diferencaMinima: 0.08,
 
-  // Configurações de navegação
   maxPontosGoogle: 9,
   distanciaMinimaPontos: 300,
   margemManobra: 80,
@@ -58,7 +57,6 @@ const baseMap = L.tileLayer(
 const routeLayer = L.layerGroup().addTo(map);
 const pointLayer = L.layerGroup().addTo(map);
 
-// Diagnóstico do carregamento
 
 baseMap.on('loading', () => {
   console.log('SECURWAY | Carregando mapa...');
@@ -328,7 +326,6 @@ for (const type of ['origem', 'destino']) {
   });
 }
 
-// CONTROLES DO MAPA
 
 $('inverter').onclick = () => {
   const a = state.origem;
@@ -486,10 +483,6 @@ function distanciaMetros(a, b) {
   return 2 * R * Math.asin(Math.sqrt(x));
 }
 
-// GOOGLE MAPS: SELEÇÃO DE PONTOS
-// Baseada nos trechos retornados pelo OSRM.
-// Evita forçar pontos próximos às manobras e em vias sem nome.
-
 function selecionarPontosPassagem(
   rota,
   limite = ROUTE_CONFIG.maxPontosGoogle || 9
@@ -517,7 +510,6 @@ function selecionarPontosPassagem(
   const candidatos = [];
   const escolhidos = [];
 
-  // Identificar pontos sobre a geometria original.
 
   for (let i = 1; i < amostra.length - 1; i++) {
 
@@ -550,8 +542,6 @@ function selecionarPontosPassagem(
       exclusividade
     });
   }
-
-  // Distribuir os pontos pelo percurso completo.
 
   for (let i = 1; i <= limite; i++) {
 
@@ -590,7 +580,6 @@ function selecionarPontosPassagem(
     }
   }
 
-  // Preencher possíveis lacunas.
 
   while (escolhidos.length < limite) {
 
@@ -626,7 +615,6 @@ function selecionarPontosPassagem(
     escolhidos.push(melhor);
   }
 
-  // Manter a ordem original do deslocamento.
 
   escolhidos.sort((a, b) => a.d - b.d);
 
@@ -644,8 +632,6 @@ function selecionarPontosPassagem(
     lon: p.lon
   }));
 }
-// GERAÇÃO DO LINK DO GOOGLE MAPS
-
 function googleLink(rota, usarPontos = true) {
 
   const url = new URL(
@@ -726,7 +712,6 @@ function identificarVias(rota) {
   return vias;
 }
 
-// RESULTADOS E BOTÕES
 
 function render() {
   const list = $('lista');
@@ -852,7 +837,6 @@ function render() {
   atualizarIcones();
 }
 
-// EXPLORAÇÃO DE ROTAS ALTERNATIVAS
 
 function pontoIntermediario(a, b, t, deslocamento) {
   const lat = a.lat + (b.lat - a.lat) * t;
@@ -1095,7 +1079,6 @@ function rotaTemRetornoOuLaco(rota) {
 
   const legs = rota.legs || [];
 
-  // Identifica manobras de retorno.
   for (const leg of legs) {
 
     for (const step of leg.steps || []) {
@@ -1115,8 +1098,6 @@ function rotaTemRetornoOuLaco(rota) {
 
   }
 
-  // Identifica segmentos percorridos
-  // novamente no sentido contrário.
 
   const coords = rota.geometry.coordinates;
   const segmentos = new Set();
@@ -1151,12 +1132,10 @@ function rotaTemRetornoOuLaco(rota) {
 
   }
 
-  // Descarta retornos acumulados acima de 50 metros.
   if (distanciaRepetida > 50) {
     return true;
   }
 
-  // Identifica possíveis laços maiores.
   const pontos = amostrarTrajeto(rota);
 
   for (let i = 0; i < pontos.length; i++) {
@@ -1212,13 +1191,11 @@ function adicionarRotaUnica(
     return false;
   }
 
-  // Preserva a primeira rota nativa do OSRM.
   if (!lista.length) {
     lista.push(candidata);
     return true;
   }
 
-  // Descarta retornos e laços.
   if (rotaTemRetornoOuLaco(candidata)) {
 
     console.log(
@@ -1228,7 +1205,6 @@ function adicionarRotaUnica(
     return false;
   }
 
-  // Descarta desvios excessivos.
   if (
     candidata.distance >
     distanciaPrincipal * ROUTE_CONFIG.desvioMaximo
@@ -1241,7 +1217,6 @@ function adicionarRotaUnica(
     return false;
   }
 
-  // Verifica se o trajeto é realmente diferente.
   for (const existente of lista) {
 
     const diferencaAB =
@@ -1268,7 +1243,7 @@ function adicionarRotaUnica(
 
   return true;
 }
-// BUSCA PRINCIPAL
+
 
 async function route() {
 
@@ -1460,7 +1435,6 @@ async function route() {
   }
 }
 $('buscar').onclick = route;
-// RECUPERAR PONTOS DE UM LINK ANTIGO
 
 (function restore() {
   const p = new URLSearchParams(location.search);
