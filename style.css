@@ -155,7 +155,6 @@ h2 {
   box-shadow: 0 0 0 3px #c6c5c320;
 }
 
-
 .actions,
 .route-tools {
   display: flex;
@@ -219,16 +218,13 @@ h2 {
   padding: 9px 11px;
   font-size: 12px;
 }
-
 /* Ícones dos botões */
-
 .btn svg {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
   stroke-width: 2;
 }
-
 .suggest {
   position: absolute;
   z-index: 1000;
@@ -282,14 +278,12 @@ h2 {
   margin-top: 4px;
 }
 
-
 .status {
   min-height: 25px;
   font-size: 13px;
   color: var(--muted);
   line-height: 1.5;
 }
-
 
 .route {
   width: 100%;
@@ -313,9 +307,7 @@ h2 {
   background: #292929;
   border-color: var(--silver);
 }
-
 /* Rota selecionada */
-
 .route.active {
   border: 1px solid var(--silver);
   background: var(--route-active);
@@ -325,17 +317,13 @@ h2 {
 .route.active:hover:not(:disabled) {
   background: #292929;
 }
-
 /* Informações das rotas */
-
 .route small {
   display: block;
   color: var(--muted);
   margin-top: 5px;
   line-height: 1.5;
 }
-
-
 .route-tools {
   margin-bottom: 14px;
 }
@@ -343,9 +331,7 @@ h2 {
 .route-tools .btn {
   min-height: 38px;
 }
-
 /* Botão Seguir por esta rota */
-
 .route-tools .navigate {
   background: var(--accent);
   border-color: var(--accent);
@@ -374,7 +360,6 @@ h2 {
   font-size: 12px;
 }
 
-
 .map-panel {
   padding: 10px;
 }
@@ -386,7 +371,6 @@ h2 {
 
   padding: 6px 6px 12px;
 }
-
 #map {
   position: relative;
   display: block;
@@ -421,9 +405,7 @@ h2 {
 .leaflet-container a.leaflet-popup-close-button:hover {
   color: var(--text);
 }
-
 /* Botões de zoom */
-
 .leaflet-bar a {
   background: var(--panel);
   color: var(--text);
@@ -439,9 +421,7 @@ h2 {
   background: var(--field);
   color: #777777;
 }
-
 /* Créditos do mapa */
-
 .leaflet-container .leaflet-control-attribution {
   background: #ffffffd9;
   color: #333333;
@@ -474,8 +454,6 @@ h2 {
   padding: 5px 9px;
 }
 
-
-
 .dot {
   display: inline-block;
 
@@ -485,7 +463,6 @@ h2 {
   border-radius: 50%;
   margin-right: 7px;
 }
-
 
 a {
   color: var(--silver);
@@ -513,11 +490,9 @@ a:hover {
   background: var(--silver);
 }
 
-
 .layout > div {
   min-width: 0;
 }
-
 .map-panel {
   width: 100%;
   min-width: 0;
