@@ -24,7 +24,15 @@ const ROUTE_CONFIG = {
   desvioMaximo: 1.8,
   timeout: 15000,
   toleranciaDuplicidade: 100,
-  diferencaMinima: 0.08
+  diferencaMinima: 0.08,
+
+  // Configurações de navegação
+  maxPontosGoogle: 9,
+  distanciaMinimaPontos: 300,
+  margemManobra: 80,
+  toleranciaValidacao: 80,
+  divergenciaMaxima: 0.03,
+  variacaoDistanciaMaxima: 0.05
 };
 
 function atualizarIcones() {
