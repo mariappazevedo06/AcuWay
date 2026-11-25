@@ -45,14 +45,27 @@ const map = L.map('map', {
   zoomControl: true
 }).setView([-21.78, -41.05], 10);
 
-L.tileLayer(
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+const baseMap = L.tileLayer(
+  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   {
-    maxZoom: 19,
     attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+
+    subdomains: 'abcd',
+    maxZoom: 19,
+    detectRetina: false,
+    updateWhenIdle: true,
+    updateWhenZooming: false,
+    keepBuffer: 2
   }
 ).addTo(map);
+
+baseMap.on('tileerror', e => {
+  console.warn(
+    'SECURWAY | Erro ao carregar imagem do mapa:',
+    e.tile.src
+  );
+});
 
 const routeLayer = L.layerGroup().addTo(map);
 const pointLayer = L.layerGroup().addTo(map);
