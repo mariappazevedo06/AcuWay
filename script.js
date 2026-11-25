@@ -42,54 +42,45 @@ function atualizarIcones() {
 }
 
 const map = L.map('map', {
-  zoomControl: true
+  zoomControl: true,
+  trackResize: true
 }).setView([-21.78, -41.05], 10);
 
 const baseMap = L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-
-    subdomains: 'abcd',
     maxZoom: 19,
-    detectRetina: false,
-    updateWhenIdle: true,
-    updateWhenZooming: false,
-    keepBuffer: 2
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }
 ).addTo(map);
 
+const routeLayer = L.layerGroup().addTo(map);
+const pointLayer = L.layerGroup().addTo(map);
+
+// Diagnóstico do carregamento
+
+baseMap.on('loading', () => {
+  console.log('SECURWAY | Carregando mapa...');
+});
+
+baseMap.on('load', () => {
+  console.log('SECURWAY | Carregamento do mapa concluído.');
+});
+
 baseMap.on('tileerror', e => {
   console.warn(
-    'SECURWAY | Erro ao carregar imagem do mapa:',
+    'SECURWAY | Erro ao carregar imagem:',
     e.tile.src
   );
 });
 
-const routeLayer = L.layerGroup().addTo(map);
-const pointLayer = L.layerGroup().addTo(map);
-// Corrigir dimensões do mapa em dispositivos móveis
-
-const mapObserver = new ResizeObserver(() => {
-  map.invalidateSize({
-    pan: false,
-    debounceMoveend: true
-  });
-});
-
-mapObserver.observe($('map'));
+// Ajuste após o carregamento da página
 
 window.addEventListener('load', () => {
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 300);
-});
-
-window.addEventListener('orientationchange', () => {
-  setTimeout(() => {
-    map.invalidateSize();
-  }, 300);
+  map.invalidateSize({
+    pan: false
+  });
 });
 let drawn = [];
 
