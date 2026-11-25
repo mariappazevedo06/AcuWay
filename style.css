@@ -1,8 +1,3 @@
-/* ==================================================
-   SECURWAY
-   SEGURANÇA CORPORATIVA - PORTO DO AÇU
-   ================================================== */
-
 :root {
   color-scheme: dark;
 
@@ -418,9 +413,6 @@ h2 {
   font-size: 12px;
 }
 
-/* ==================================================
-   MAPA INTERATIVO
-   ================================================== */
 
 .map-panel {
   padding: 10px;
@@ -435,13 +427,21 @@ h2 {
 }
 
 #map {
+  position: relative;
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+
   height: min(75vh, 720px);
   min-height: 430px;
 
   border-radius: 12px;
   background: var(--field);
-}
 
+  overflow: hidden;
+  isolation: isolate;
+}
 /* ==================================================
    PERSONALIZAÇÃO DO LEAFLET
    ================================================== */
@@ -576,10 +576,19 @@ a:hover {
    RESPONSIVIDADE
    ================================================== */
 
+.layout > div {
+  min-width: 0;
+}
+
+.map-panel {
+  width: 100%;
+  min-width: 0;
+}
+
 @media (max-width: 760px) {
 
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .shell {
@@ -587,8 +596,21 @@ a:hover {
   }
 
   #map {
+    width: 100%;
     height: 440px;
     min-height: 360px;
+  }
+
+  .leaflet-container {
+    font-size: 12px;
+  }
+
+  .leaflet-control-attribution {
+    font-size: 9px;
+  }
+
+  .field input {
+    font-size: 16px;
   }
 
 }
