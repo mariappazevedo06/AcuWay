@@ -149,7 +149,7 @@ function markers() {
     marker.bindPopup(popup);
   }
 }
-// PESQUISA DE LUGARES
+
 function normalizeFeature(f) {
   const p = f.properties || {};
   const c = f.geometry?.coordinates;
